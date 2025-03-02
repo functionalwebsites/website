@@ -1,0 +1,53 @@
+/*animations.css*/
+
+
+.down {
+	transform: translateY(100vh);
+}
+.up {
+	transform: translateY(-100vh);
+}
+
+.fadein {
+	animation: 2s fadein 1 ease-in-out;
+}
+.swipeup {
+	animation: 300ms swipeup 1 ease-in-out;
+}
+
+.swipedown {
+	animation: 300ms swipedown 1 ease-in-out;
+}
+
+.slidedown {
+	animation: 333ms slidedown 1 ease-in-out;
+}
+
+.rotate {
+	animation: 333ms rotate 1;
+}
+
+@keyframes rotate {
+	from {transform:rotate(-360deg);transform-origin: center;}
+	to {transform:rotate(0deg);transform-origin: center;}
+}
+
+@keyframes fadein {
+	from {opacity:0;}
+	to {opacity:1;}
+}
+
+@keyframes swipeup {
+	from {transform: translateY(100vh);}
+	to {transform: translateY(0vh);}
+}
+
+@keyframes swipedown {
+	from {transform: translateY(0vh);}
+	to {transform: translateY(100vh);}
+}
+
+@keyframes slidedown {
+	from {transform: translateY(-10vh);}
+	to {transform: translateY(0vh);}
+}

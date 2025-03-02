@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Online Ordering with Payment Options</title>
+  <link rel="stylesheet" href="../../styles.css">
+  <link rel="stylesheet" href="../../media-queries.css">
+  <link rel="stylesheet" href="../../accessibility.css">
+  <link rel="stylesheet" href="../../animations.css">
+  <script src="../../nav.js" defer></script>    
+  <script src="../../script.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    .menu-item {
+      cursor: pointer;
+      margin: 10px 0;
+    }
+    .hidden {
+      display: none;
+    }
+    #qrcode {
+      margin-top: 10px;
+    }
+    .order-item-buttons button {
+      margin-left: 5px;
+      cursor: pointer;
+    }
+    #payment-options {
+      margin: 20px 0;
+    }
+    .logo {
+        display: none;
+    }
+    .logo#mini {
+        display: block;
+    }
+    .skip-link, .nav-menu, .menu-toggle {
+        display: none;
+    }
+    ul {
+      list-style-type: none;
+    }
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body>
+    <header class="up" id="nav-placeholder">
+    </header>
+    <main id="main-content" role="main" class="down">
+
+  <h1>Menu</h1>
+  <div class="menu">
+    <div class="menu-item" data-item="Burger" data-price="5.99">🍔 Burger - $5.99</div>
+    <div class="menu-item" data-item="Pizza" data-price="8.99">🍕 Pizza - $8.99</div>
+    <div class="menu-item" data-item="Salad" data-price="4.99">🥗 Salad - $4.99</div>
+  </div>
+
+  <h2>Your Order</h2>
+  <ul id="order-list"></ul>
+
+  <div id="payment-options">
+    <label for="payment-method">Select Payment Method:</label>
+    <select id="payment-method">
+      <option value="" disabled selected>Choose a payment platform</option>
+      <option value="venmo">Venmo</option>
+      <option value="cashapp">Cash App</option>
+      <option value="sms">Order via SMS</option>
+    </select>
+  </div>
+
+  <button id="place-order" class="hidden">Place Order</button>
+  <button id="show-qr" class="hidden">Show QR Code</button>
+
+  <p id="qr-instructions" class="hidden">
+    If you're on a computer, click "Show QR Code" to pay with your phone.
+  </p>
+
+  <div id="qrcode" class="hidden"></div>
+  </main>
+  <div class="theme-toggle">
+    <span id="icon" class="theme-icon"></span>
+  </div>
+  <script>
+    const menuItems = document.querySelectorAll('.menu-item');
+    const orderList = document.getElementById('order-list');
+    const paymentMethodDropdown = document.getElementById('payment-method');
+    const placeOrderButton = document.getElementById('place-order');
+    const showQrButton = document.getElementById('show-qr');
+    const qrInstructions = document.getElementById('qr-instructions');
+    const qrCodeContainer = document.getElementById('qrcode');
+
+    let order = [];
+    let totalPrice = 0;
+    let selectedPaymentMethod = '';
+    let isQrVisible = false; // Track whether the QR code is currently visible
+
+    // Add item to the order
+    menuItems.forEach(item => {
+      item.addEventListener('click', () => {
+        const itemName = item.dataset.item;
+        const itemPrice = parseFloat(item.dataset.price);
+
+        const existingItem = order.find(o => o.name === itemName);
+        if (existingItem) {
+          existingItem.count += 1;
+        } else {
+          order.push({ name: itemName, price: itemPrice, count: 1 });
+        }
+        totalPrice += itemPrice;
+
+        renderOrder();
+        if (isQrVisible) generateQrCode();
+      });
+    });
+
+    // Render the order list
+    function renderOrder() {
+      orderList.innerHTML = '';
+      order.forEach((item, index) => {
+        const li = document.createElement('li');
+        li.textContent = `${item.name} - $${item.price.toFixed(2)} x${item.count} ($${(item.price * item.count).toFixed(2)})`;
+
+        // Create quantity management buttons
+        const buttons = document.createElement('div');
+        buttons.classList.add('order-item-buttons');
+
+        // Add one
+        const addOneButton = document.createElement('button');
+        addOneButton.textContent = '+';
+        addOneButton.onclick = () => {
+          item.count += 1;
+          totalPrice += item.price;
+          renderOrder();
+          if (isQrVisible) generateQrCode();
+        };
+
+        // Remove one
+        const removeOneButton = document.createElement('button');
+        removeOneButton.textContent = '-';
+        removeOneButton.onclick = () => {
+          if (item.count > 1) {
+            item.count -= 1;
+            totalPrice -= item.price;
+          } else {
+            totalPrice -= item.price;
+            order.splice(index, 1);
+          }
+          renderOrder();
+          if (isQrVisible) generateQrCode();
+
+          // Hide buttons if the order is empty
+          if (order.length === 0) {
+            placeOrderButton.classList.add('hidden');
+            showQrButton.classList.add('hidden');
+            qrInstructions.classList.add('hidden');
+            qrCodeContainer.classList.add('hidden');
+            isQrVisible = false;
+          }
+        };
+
+        // Remove all
+        const removeAllButton = document.createElement('button');
+        removeAllButton.textContent = 'Remove All';
+        removeAllButton.onclick = () => {
+          totalPrice -= item.price * item.count;
+          order.splice(index, 1);
+          renderOrder();
+          if (isQrVisible) generateQrCode();
+
+          // Hide buttons if the order is empty
+          if (order.length === 0) {
+            placeOrderButton.classList.add('hidden');
+            showQrButton.classList.add('hidden');
+            qrInstructions.classList.add('hidden');
+            qrCodeContainer.classList.add('hidden');
+            isQrVisible = false;
+          }
+        };
+
+        // Append buttons to the list item
+        buttons.appendChild(addOneButton);
+        buttons.appendChild(removeOneButton);
+        buttons.appendChild(removeAllButton);
+        li.appendChild(buttons);
+        orderList.appendChild(li);
+      });
+
+      // Add total price at the end
+      const totalLi = document.createElement('li');
+      totalLi.textContent = `Total: $${totalPrice.toFixed(2)}`;
+      totalLi.style.fontWeight = 'bold';
+      orderList.appendChild(totalLi);
+    }
+
+    // Handle payment method selection
+    paymentMethodDropdown.addEventListener('change', () => {
+      selectedPaymentMethod = paymentMethodDropdown.value;
+      placeOrderButton.textContent = `Place Order with ${capitalize(selectedPaymentMethod)}`;
+      placeOrderButton.classList.remove('hidden');
+      showQrButton.classList.remove('hidden');
+      qrInstructions.classList.remove('hidden');
+
+      // Update QR code if it's already visible
+      if (isQrVisible) {
+        generateQrCode();
+      }
+    });
+
+    // Show QR Code
+    showQrButton.addEventListener('click', () => {
+      generateQrCode();
+      qrCodeContainer.classList.remove('hidden');
+      isQrVisible = true;
+    });
+
+    // Place Order
+    placeOrderButton.addEventListener('click', () => {
+      if (selectedPaymentMethod === 'sms') {
+        const smsBody = encodeURIComponent(
+          `Order Details:\n${getOrderSummary()}\n\nTotal: $${totalPrice.toFixed(2)}`
+        );
+        const smsLink = `sms:7143690148?body=${smsBody}`;
+        window.location.href = smsLink;
+      } else {
+        const paymentLinks = {
+          venmo: `venmo://paycharge?txn=pay&recipients=your-venmo-username&amount=${totalPrice.toFixed(2)}&note=${encodeURIComponent(getOrderSummary())}`,
+          cashapp: `https://cash.app/$yourusername/${totalPrice.toFixed(2)}?note=${encodeURIComponent(getOrderSummary())}`
+        };
+
+        const paymentUrl = paymentLinks[selectedPaymentMethod];
+        if (paymentUrl) {
+          window.location.href = paymentUrl;
+        } else {
+          alert('Please select a valid payment method.');
+        }
+      }
+    });
+
+    // Generate QR Code
+    function generateQrCode() {
+      const paymentLinks = {
+        venmo: `venmo://paycharge?txn=pay&recipients=your-venmo-username&amount=${totalPrice.toFixed(2)}&note=${encodeURIComponent(getOrderSummary())}`,
+        cashapp: `https://cash.app/$yourusername/${totalPrice.toFixed(2)}?note=${encodeURIComponent(getOrderSummary())}`
+      };
+
+      const qrLink = paymentLinks[selectedPaymentMethod];
+      qrCodeContainer.innerHTML = '';
+      if (qrLink) {
+        new QRCode(qrCodeContainer, {
+          text: qrLink,
+          width: 128,
+          height: 128
+        });
+      }
+    }
+
+    // Get order summary
+    function getOrderSummary() {
+      return order.map(item => `${item.name} x${item.count}`).join(', ');
+    }
+
+    // Capitalize first letter of a word
+    function capitalize(word) {
+      return word.charAt(0).toUpperCase() + word.slice(1);
+    }
+  </script>
+</body>
+</html>

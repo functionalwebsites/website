@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meta Tag Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+        }
+        button {
+            padding: 10px 20px;
+            margin-top: 20px;
+        }
+        pre {
+            background: #f4f4f4;
+            padding: 10px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Meta Tag Generator</h1>
+
+    <form id="metaForm">
+        <!-- Single Input for Title -->
+        <label for="title">Title (All platforms):</label>
+        <input type="text" id="title" placeholder="Enter page title">
+
+        <!-- Single Input for Description -->
+        <label for="description">Description (Used across platforms):</label>
+        <textarea id="description" rows="3" placeholder="Enter description"></textarea>
+
+        <!-- Single Input for Global URL -->
+        <label for="url">Global URL (For Open Graph & Twitter):</label>
+        <input type="text" id="url" placeholder="Enter page URL">
+
+        <!-- Unique Input for Image URL -->
+        <label for="imageURL">Image URL (For Open Graph & Twitter):</label>
+        <input type="text" id="imageURL" placeholder="Enter image URL">
+
+        <button type="button" onclick="generateMetaTags()">Generate Meta Tags</button>
+    </form>
+
+    <h2>Generated Meta Tags:</h2>
+    <pre id="metaOutput"></pre>
+
+    <script>
+        function generateMetaTags() {
+            const title = document.getElementById('title').value;
+            const description = document.getElementById('description').value;
+            const url = document.getElementById('url').value;
+            const imageURL = document.getElementById('imageURL').value;
+
+            const metaTags = `
+<!-- Standard Meta Tags -->
+<title>${title}</title>
+<meta name="description" content="${description}">
+<link rel="canonical" href="${url}">
+
+<!-- Open Graph / Facebook -->
+<meta property="og:title" content="${title}">
+<meta property="og:description" content="${description}">
+<meta property="og:url" content="${url}">
+<meta property="og:image" content="${imageURL}">
+<meta property="og:type" content="website">
+
+<!-- Twitter -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="${title}">
+<meta name="twitter:description" content="${description}">
+<meta name="twitter:url" content="${url}">
+<meta name="twitter:image" content="${imageURL}">`;
+
+            document.getElementById('metaOutput').textContent = metaTags;
+        }
+    </script>
+
+</body>
+</html>

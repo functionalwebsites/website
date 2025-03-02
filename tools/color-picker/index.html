@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Color Extractor by Functional Websites</title>
+    <!-- Open Graph Meta Tags for Social Media -->
+    <meta property="og:title" content="Image Color Extractor by Functional Websites">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://www.functionalwebsites.com/tools/color-picker">
+    <meta property="og:image" content="social.jpg">
+    <meta property="og:description" content="Functional Websites for All!">
+    <meta property="og:site_name" content="Functional Websites">
+    <meta property="og:locale" content="en_US">
+
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:site" content="@functionalwebsites">
+    <meta name="twitter:title" content="Functional Websites">
+    <meta name="twitter:description" content="Functional Websites for All!">
+    <meta name="twitter:image" content="social.jpg">
+
+    <!-- Favicon -->
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+
+    <!-- Apple Touch Icon -->
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="57x57" href="apple-touch-icon-57x57.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="apple-touch-icon-114x114.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon-180x180.png">
+
+    <!-- Theme Color for Mobile Browsers -->
+    <meta name="theme-color" content="#000000">
+
+    <title>Functional Websites</title>
+    <link rel="stylesheet" href="../../styles.css">
+    <link rel="stylesheet" href="../../media-queries.css">
+    <link rel="stylesheet" href="../../accessibility.css">
+    <link rel="stylesheet" href="../../animations.css">
+    <script src="../../nav.js" defer></script>    
+    <script src="../../script.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 20px;
+        }
+        #color-container {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .color-box {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .color-swatch {
+            width: 50px;
+            height: 50px;
+            margin-right: 10px;
+        }
+        .copy-btn {
+            margin-left: 10px;
+        }
+        #css-output {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        textarea {
+            width: 300px;
+            height: 100px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <body>
+        <header class="up" id="nav-placeholder">
+        </header>
+    <main id="main-content" role="main" class="down">
+
+    <h1>ImageColor Extractor</h1>
+
+    <form id="upload-form">
+        <input type="file" id="image-upload" accept="image/*">
+    </form>
+    <div id="color-container"></div>
+    <div id="css-output">
+        <textarea id="css-textarea" readonly></textarea>
+        <button class="copy-btn button" onclick="copyCSSToClipboard()">Copy CSS</button>
+    </div>
+    <canvas id="image-canvas" style="display:none;"></canvas>
+    </main>
+    <div class="theme-toggle">
+        <span id="icon" class="theme-icon"></span>
+      </div>
+    <script>
+
+        document.getElementById('image-upload').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = new Image();
+                    img.onload = function() {
+                        const canvas = document.getElementById('image-canvas');
+                        const ctx = canvas.getContext('2d');
+                        canvas.width = img.width;
+                        canvas.height = img.height;
+                        ctx.drawImage(img, 0, 0);
+                        processImage(ctx, img.width, img.height);
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        function processImage(ctx, width, height) {
+            const imageData = ctx.getImageData(0, 0, width, height);
+            const data = imageData.data;
+            const colorCount = {};
+            for (let i = 0; i < data.length; i += 4) {
+                const r = data[i];
+                const g = data[i + 1];
+                const b = data[i + 2];
+                const rgb = `${r},${g},${b}`;
+
+                // Exclude black, white, grayscale, and colors with RGB values under 30 or over 220
+                if (!isExcludedColor(r, g, b)) {
+                    if (colorCount[rgb]) {
+                        colorCount[rgb]++;
+                    } else {
+                        colorCount[rgb] = 1;
+                    }
+                }
+            }
+
+            const sortedColors = Object.keys(colorCount).sort((a, b) => colorCount[b] - colorCount[a]);
+            const distinctColors = getDistinctColors(sortedColors, 3, 50); // Get top 3 distinct colors with a threshold of 50
+            displayColors(distinctColors);
+            displayCSS(distinctColors);
+        }
+
+        function isExcludedColor(r, g, b) {
+            const isGrayscale = (r === g && g === b);
+            const isTooDark = (r < 30 && g < 30 && b < 30);
+            const isTooLight = (r > 220 && g > 220 && b > 220);
+            return isGrayscale || isTooDark || isTooLight;
+        }
+
+        function getDistinctColors(colors, count, threshold) {
+            const distinctColors = [];
+            for (const color of colors) {
+                const [r, g, b] = color.split(',').map(Number);
+                if (distinctColors.length === 0) {
+                    distinctColors.push(color);
+                } else {
+                    let isDistinct = true;
+                    for (const distinctColor of distinctColors) {
+                        const [dr, dg, db] = distinctColor.split(',').map(Number);
+                        if (colorDistance(r, g, b, dr, dg, db) < threshold) {
+                            isDistinct = false;
+                            break;
+                        }
+                    }
+                    if (isDistinct) {
+                        distinctColors.push(color);
+                    }
+                }
+                if (distinctColors.length >= count) break;
+            }
+            return distinctColors;
+        }
+
+        function colorDistance(r1, g1, b1, r2, g2, b2) {
+            return Math.sqrt((r1 - r2) ** 2 + (g1 - g2) ** 2 + (b1 - b2) ** 2);
+        }
+
+        function displayColors(colors) {
+            const colorContainer = document.getElementById('color-container');
+            colorContainer.innerHTML = '';
+            colors.forEach(color => {
+                const rgb = color.split(',');
+                const hex = rgbToHex(rgb[0], rgb[1], rgb[2]);
+                const colorBox = document.createElement('div');
+                colorBox.className = 'color-box';
+                colorBox.innerHTML = `
+                    <div class="color-swatch" style="background-color: rgb(${color});"></div>
+                    <span>RGB: ${color}</span>
+                    <button class="copy-btn" onclick="copyToClipboard('rgb(${color})')">Copy</button>
+                    <span>HEX: ${hex}</span>
+                    <button class="copy-btn" onclick="copyToClipboard('${hex}')">Copy</button>
+                `;
+                colorContainer.appendChild(colorBox);
+            });
+        }
+
+        function displayCSS(colors) {
+            const cssTextarea = document.getElementById('css-textarea');
+            const cssContent = `* {\n  --color-one: rgb(${colors[0]});\n  --color-two: rgb(${colors[1]});\n  --color-three: rgb(${colors[2]});\n}`;
+            cssTextarea.value = cssContent;
+        }
+
+        function rgbToHex(r, g, b) {
+            return `#${((1 << 24) + (parseInt(r) << 16) + (parseInt(g) << 8) + (parseInt(b))).toString(16).slice(1)}`;
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert('Copied to clipboard: ' + text);
+            }).catch(err => {
+                alert('Failed to copy text: ', err);
+            });
+        }
+
+        function copyCSSToClipboard() {
+            const cssTextarea = document.getElementById('css-textarea');
+            copyToClipboard(cssTextarea.value);
+        }
+    </script>
+</body>
+</html>

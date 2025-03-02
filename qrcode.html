@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Functional Websites for All!">
+
+    <!-- Open Graph Meta Tags for Social Media -->
+    <meta property="og:title" content="Functional Websites">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://www.functionalwebsites.com/qrcode">
+    <meta property="og:image" content="/social.jpg">
+    <meta property="og:description" content="America's Best QR Code Generator">
+    <meta property="og:site_name" content="Functional Websites">
+    <meta property="og:locale" content="en_US">
+
+    <!-- Twitter Card Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:site" content="@functionalwebsites">
+    <meta name="twitter:title" content="Functional Websites">
+    <meta name="twitter:description" content="America's Best QR Code Generator">
+    <meta name="twitter:image" content="/social.jpg">
+
+    <!-- Favicon -->
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+
+    <!-- Apple Touch Icon -->
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <link rel="apple-touch-icon" sizes="57x57" href="apple-touch-icon-57x57.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="apple-touch-icon-114x114.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon-180x180.png">
+
+    <!-- Theme Color for Mobile Browsers -->
+    <meta name="theme-color" content="#000000">
+
+    <title>Functional Websites</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="media-queries.css">
+    <link rel="stylesheet" href="accessibility.css">
+    <link rel="stylesheet" href="animations.css">
+    <script src="nav.js" defer></script>    
+    <script src="script.js" defer></script>
+    <style>
+        .container {
+            text-align: center;
+            align-content: start;
+            padding: 20px;
+            box-shadow: none;
+            border-radius: 8px;
+            height: 100vh;
+            margin: auto;
+        }
+        input, button {
+            padding: 10px;
+            margin: 5px;
+            font-size: 16px;
+        }
+        .container button {
+            margin: auto;
+        }
+        #downloadBtn, main button {
+            display: initial !important;
+            background: var(--text-color);
+            color: var(--bg-color);
+            border: var(--border);
+            border-radius: var(--magic-number);
+            box-shadow: var(--physical);
+        }
+        #qrcode {
+            padding: 12px 33%;
+            display: flex;
+            justify-content: center;
+        }
+        #qrcodegenerator p {
+            max-width:80vw;
+        }
+        #qrcodeh2 {
+            font-size: 2em;
+        }
+    </style>
+</head>
+<body>
+
+    <header class="up" id="nav-placeholder">
+    </header>
+
+     <main id="main-content" role="main" class="down">
+        <section id="qrcodegenerator" class="content-section">
+        <h2 id="qrcodeh2">QR Code Generator</h2>
+        <p class="text-box">This is a <u>good</u> QR code generator. Some shady websites will add a gateway website to their QR codes so that once you've printed your marketing materials with their QR codes, they can require you to pay them for it to continue working. By adding a gateway, or an in-between website, they can direct traffic to their website before they direct it to yours. So whenever they choose, they can turn off the redirect and force people to pay to continue redirecting traffic via the QR code. It's nasty!</p>
+        <input type="text" id="text" placeholder="Enter text" />
+        <button onclick="generateQRCode()">Generate QR Code</button>
+        <div id="qrcode"></div>
+        <button id="downloadBtn" style="display:none;" onclick="downloadQRCode()">Download QR Code</button>
+        <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
+        <script>
+        function generateQRCode() {
+            const text = document.getElementById('text').value;
+            const qrcodeContainer = document.getElementById('qrcode');
+            qrcodeContainer.innerHTML = ""; // Clear previous QR code
+
+            if (text.trim() !== "") {
+                new QRCode(qrcodeContainer, {
+                    text: text,
+                    width: 256,
+                    height: 256
+                });
+                document.getElementById('downloadBtn').style.display = "block";
+            } else {
+                document.getElementById('downloadBtn').style.display = "none";
+            }
+        }
+
+        function downloadQRCode() {
+            const text = document.getElementById('text').value;
+            const qrCodeImg = document.querySelector('#qrcode img');
+            const canvas = document.querySelector('#qrcode canvas');
+            let dataUrl;
+
+            if (qrCodeImg) {
+                dataUrl = qrCodeImg.src;
+            } else if (canvas) {
+                dataUrl = canvas.toDataURL();
+            }
+
+            if (dataUrl) {
+                const link = document.createElement('a');
+                link.href = dataUrl;
+                link.download = `QR code for ${text}.png`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+        }
+
+        document.getElementById('text').addEventListener('keydown', function(event) {
+            if (event.key === 'Enter') {
+                generateQRCode();
+            }
+        });
+        </script>
+        </section>
+    </main>
+</body>
+ <footer>
+        <p>&copy; 2024 Functional Websites. All rights reserved.</p>
+    </footer>
+</html>
+

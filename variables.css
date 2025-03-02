@@ -1,0 +1,5 @@
+/*variables variables variables vars*/
+*{
+	--border: 6px solid var(--text-color);
+	--physical: 1px 1px 1px black;;
+}

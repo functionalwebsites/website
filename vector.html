@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image to Vector Converter</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    margin: 0;
+    background-color: #f0f0f0;
+    }
+
+    h1 {
+        margin-bottom: 20px;
+    }
+
+    input {
+        margin-bottom: 20px;
+    }
+
+    canvas {
+        border: 1px solid #ccc;
+    }
+    </style>
+</head>
+<body><!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Image to Vector Converter</title>
+        <link rel="stylesheet" href="styles.css">
+    </head>
+    <body>
+        <h1>Image to Vector Converter</h1>
+        <input type="file" id="imageUpload" accept="image/*">
+        <canvas id="canvas"></canvas>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/4.6.0/fabric.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/pica@8.1.1/dist/pica.min.js"></script>
+        <script src="script.js"></script>
+    </body>
+    </html>
+    
+    <script>document.getElementById('imageUpload').addEventListener('change', handleImageUpload);
+
+        function handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+        
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const imgElement = document.createElement('img');
+                imgElement.src = e.target.result;
+                imgElement.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    canvas.width = imgElement.width;
+                    canvas.height = imgElement.height;
+                    ctx.drawImage(imgElement, 0, 0);
+                    removeBackgroundAndConvertToVector(ctx, canvas);
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+        
+        function removeBackgroundAndConvertToVector(ctx, canvas) {
+            const width = canvas.width;
+            const height = canvas.height;
+            const imageData = ctx.getImageData(0, 0, width, height);
+            const data = imageData.data;
+            const threshold = 240;
+        
+            // Flood fill algorithm to remove contiguous white pixels from the edges
+            function floodFill(x, y) {
+                const stack = [[x, y]];
+                const directions = [
+                    [1, 0], [-1, 0], [0, 1], [0, -1]
+                ];
+        
+                while (stack.length) {
+                    const [sx, sy] = stack.pop();
+                    const index = (sx + sy * width) * 4;
+        
+                    if (sx >= 0 && sx < width && sy >= 0 && sy < height) {
+                        const r = data[index];
+                        const g = data[index + 1];
+                        const b = data[index + 2];
+                        const a = data[index + 3];
+        
+                        if (r > threshold && g > threshold && b > threshold && a !== 0) {
+                            data[index + 3] = 0; // Set alpha to 0
+        
+                            for (const [dx, dy] of directions) {
+                                stack.push([sx + dx, sy + dy]);
+                            }
+                        }
+                    }
+                }
+            }
+        
+            // Apply flood fill to the edges of the canvas
+            for (let x = 0; x < width; x++) {
+                floodFill(x, 0);
+                floodFill(x, height - 1);
+            }
+            for (let y = 0; y < height; y++) {
+                floodFill(0, y);
+                floodFill(width - 1, y);
+            }
+        
+            ctx.putImageData(imageData, 0, 0);
+        
+            fabric.Image.fromURL(canvas.toDataURL(), function(img) {
+                const fabricCanvas = new fabric.Canvas();
+                fabricCanvas.setWidth(width);
+                fabricCanvas.setHeight(height);
+                fabricCanvas.add(img);
+                const svg = fabricCanvas.toSVG();
+                downloadSVG(svg);
+            });
+        }
+        
+        function downloadSVG(svg) {
+            const blob = new Blob([svg], { type: 'image/svg+xml' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'image.svg';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+        
+    </script>
+</body>
+</html>

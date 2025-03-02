@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Static Site Generator with Preview</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 800px;
+      margin: 20px auto;
+      padding: 20px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    label {
+      display: block;
+      margin: 10px 0 5px;
+      font-weight: bold;
+    }
+    input, textarea, button {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    textarea {
+      height: 100px;
+    }
+    button {
+      background-color: #007BFF;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    iframe {
+      width: 100%;
+      height: 400px;
+      border: 1px solid #ddd;
+      margin-top: 20px;
+    }
+    .toggle-body {
+      margin: 20px 0;
+    }
+    #checkbox-wrapper {
+      display: inline-flex;
+    }
+  </style>
+</head>
+<body>
+  <a href="/">Return Home</a>
+  <div class="container">
+    <h1 style="text-align: center;">⚡ Static Site Generator ⚡</h1>
+    <form id="site-form">
+      <label for="name">Your Name</label>
+      <input type="text" id="name" placeholder="Enter your name" required>
+
+      <label for="url">Website URL</label>
+      <input type="text" id="url" placeholder="Enter your website URL" required>
+
+      <label for="location">Location (Optional)</label>
+      <input type="text" id="location" placeholder="Enter your location">
+
+      <label for="phone">Public Phone Number (Optional)</label>
+      <input type="text" id="phone" placeholder="Enter your phone number">
+
+      <label for="email">Public Email (Optional)</label>
+      <input type="email" id="email" placeholder="Enter your email">
+
+      <label for="description">Site Description (Optional)</label>
+      <textarea id="description" placeholder="Enter your site description"></textarea>
+
+      <label for="logo">Your Logo</label>
+      <input type="file" id="logo" accept="image/*">
+
+      <label for="color">Site Color</label>
+      <input id="color" value="#000000">
+
+      <div class="toggle-body">
+        <div id="checkbox-wrapper">
+          <label for="toggle-body">Edit Body Content </label>
+          <input type="checkbox" id="toggle-body">
+        </div>
+        <textarea id="custom-body" style="display: none;" placeholder="Enter custom body content"></textarea>
+      </div>
+
+      <button type="button" onclick="updatePreview()">Preview Website</button>
+      <iframe id="site-preview"></iframe>
+      <button type="button" onclick="downloadSite()">Download Website</button>
+    </form>
+  </div>
+
+  <script>
+    let logoBase64 = ""; // To store the base64 string of the uploaded logo
+
+    document.getElementById("logo").addEventListener("change", function(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          logoBase64 = e.target.result; // Base64 string of the image
+          updatePreview(); // Automatically update the preview when the logo changes
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    document.getElementById("toggle-body").addEventListener("change", function() {
+      const bodyEditor = document.getElementById("custom-body");
+      bodyEditor.style.display = this.checked ? "block" : "none";
+    });
+//generate site
+    function generateSiteContent() {
+  const name = document.getElementById("name").value || "Your Name";
+  const url = document.getElementById("url").value || "https://example.com";
+  const location = document.getElementById("location").value || "Not provided";
+  const phone = document.getElementById("phone").value || "Not provided";
+  const email = document.getElementById("email").value || "Not provided";
+  const description = document.getElementById("description").value || "Welcome to our site!";
+  const color = document.getElementById("color").value || "#000000";
+  const customBody = document.getElementById("toggle-body").checked
+    ? document.getElementById("custom-body").value
+    : `<p>Welcome to our amazing website, ${name}!</p>`;
+  const logoTag = logoBase64
+    ? `<img src="${logoBase64}" alt="Logo" style="max-width: 69px;">`
+    : `<h1>${name}</h1>`;
+
+  return `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${name}'s Website</title>
+  <meta name="description" content="${description}">
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
+    nav { display: flex; justify-content: center; padding: 12px; }
+    header { background-color: ${color}; color: white; padding: 20px; text-align: center; }
+    footer { background-color: #f8f9fa; text-align: left; padding: 10px; position: fixed; width: 100%; bottom: 0; }
+    .sticky-buttons { position: fixed; bottom: 20px; right: 20px; display: flex; flex-direction: row; gap: 10px; }
+    .sticky-buttons a { text-decoration: none; color: white; padding: 10px 20px; background-color: #28a745; border-radius: 5px; text-align: center; }
+    .sticky-buttons a:hover { background-color: #218838; }
+    main { padding: 20px; }
+  </style>
+</head>
+<body>
+  <nav>
+    ${logoTag}
+  </nav>
+  <header>
+    <h1>Welcome to ${name}'s Website</h1>
+    <p>${description}</p>
+  </header>
+  <main>
+    ${customBody}
+  </main>
+  <footer>
+    <p><b>Location:</b> ${location} | <b>Phone:</b> ${phone} | <b>Email:</b> ${email}</p>
+  </footer>
+  <div class="sticky-buttons">
+    <a href="tel:${phone}">Call</a>
+    <a href="mailto:${email}">Email</a>
+  </div>
+<\/body>
+<\/html>`;
+}
+
+    function updatePreview() {
+      const previewFrame = document.getElementById("site-preview");
+      const content = generateSiteContent();
+      previewFrame.srcdoc = content;
+    }
+
+    function downloadSite() {
+      const content = generateSiteContent();
+      const blob = new Blob([content], { type: "text/html" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "static-website.html";
+      link.click();
+    }
+  </script>
+</body>
+</html>

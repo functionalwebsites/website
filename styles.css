@@ -1,0 +1,451 @@
+@import url("variables.css");
+
+/* Dark Mode Light Mode Variables */
+    :root {
+        --bg-color: #ffffff;
+        --text-color: #000000;
+        --nav-bg-color: #ffffff; /* Check the JavaScript meta theme switcher */
+        --nav-text-color: #000000;
+        --bg-overlay-dark:linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6));
+        --bg-overlay-light:linear-gradient(rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.6));
+        --magic-number: 5px;
+}
+
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg-color: #000000;
+        --text-color: #ffffff;
+        --nav-bg-color: #222222; /* Check the JavaScript meta theme switcher */
+        --nav-text-color: #ffffff;
+        --bg-overlay-dark:linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6));
+        --bg-overlay-light:linear-gradient(rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.6));
+    }
+}
+
+/* Toggle Button Styles */
+.theme-toggle {
+    position: fixed;
+    bottom: 12px;
+    right: 12px;
+    width: 50px;
+    height: 50px;
+    font-size: 24px;
+    background-color: var(--bg-color);
+    border: var(--magic-number) solid var(--text-color);
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    box-shadow: var(--physical);
+    transition: bottom 0.3s ease, right 0.3s ease;
+}
+
+.theme-toggle.sticky {
+    position: sticky;
+    bottom: 4vh;
+    right: 12px;
+}
+
+/* .theme-toggle:hover {
+    background-color: var(--nav-text-color);
+    color: var(--nav-bg-color);
+    border: var(--magic-number) solid var(--nav-bg-color);
+} */
+
+/* Responsive design for toggle button */
+@media (max-width: 600px) {
+    .theme-toggle {
+        bottom: 20px;
+        right: 20px;
+    }
+}
+
+
+/* Universal CSS */
+
+* {
+    scroll-behavior: smooth;
+}
+
+main {
+    margin-top: 30px;
+}
+
+#main-content {
+    transition: 500ms;
+}
+
+.down {
+    transform: translateY(100vh);
+}
+
+body {
+    margin: 0;
+    font-family: Helvetica;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-size: 18px;
+}
+
+p, li, h1, h2, h3, h4 {
+    text-transform: uppercase;
+    background: var(--bg-color);
+    color: var(--text-color);
+    border: var(--border);
+    box-shadow:var(--physical);
+    border-radius: var(--magic-number);
+    width: fit-content;
+    text-align: center;
+    margin: 12px auto;
+    padding: 12px;
+    letter-spacing: 3px;
+    line-height: 1.25em;
+    text-align: justify;
+    word-break: break-word;
+}
+
+img {
+    max-width: 100%;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+a, button {
+    cursor: pointer;
+    color: var(--text-color);
+}
+
+/* Header */
+header {
+    background-color: rgba(0,0,0,0);
+    color: var(--nav-text-color);
+    padding: 15px;
+    position: static;
+    width: calc(100% - 30px);
+    top: 0;
+    z-index: 1000;
+    transition: 500ms;
+}
+
+nav {
+    display:flex;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+/* Navigation Menu */
+.nav-menu {
+    margin: 0;
+    list-style: none;
+    flex-direction: column;
+    position: fixed;
+    top: 60px;
+    left: -100%;
+    width: 50%;
+    height: 100%;
+    padding: 20px;
+    transition: 500ms;
+    z-index:999;
+}
+
+.nav-menu.active {
+    left: 0;
+}
+
+.nav-menu li {
+    letter-spacing: -1px;
+    text-transform: uppercase;
+    margin: 10px 0;
+    padding: 10px 20px;
+}
+
+.nav-menu a, .logo a {
+    color: var(--nav-text-color);
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.nav-item {
+    position: relative;
+}
+
+.sub-menu {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    list-style: none;
+    min-width: 200px;
+}
+
+
+.nav-item:hover .sub-menu,  
+.nav-item:focus-within .sub-menu { 
+    display: block; 
+}
+
+/* Mobile-friendly styling */
+@media (max-width: 768px) {
+    .nav-menu {
+        flex-direction: column;
+    }
+}
+
+
+
+.menu-toggle {
+    text-decoration: none;
+    display: block;
+    background: none;
+    border: none;
+    color: var(--nav-text-color);
+    font-size: 36px;
+    cursor: pointer;
+    padding: 0;
+    margin: 0;
+}
+
+
+/* Logo */
+
+.logo#mini {
+    display: block;
+    font-size: 1.5em;
+    font-weight: 900;
+    letter-spacing: -2px;
+    text-transform: uppercase;
+    font-size: 1.5em;
+    line-height:0px;
+    padding:4px;
+    top:0px
+}
+
+.logo {
+    display: none;
+    font-weight: 900;
+    letter-spacing: -2px;
+    text-transform: uppercase;
+    font-size: 1.5em;
+    position: fixed;
+    left: 20px;
+    z-index:999;
+}
+
+/* Sections */
+
+.hero {
+    min-height: 60vh;
+    text-align: center;
+    align-content: center;
+    padding: 40px 5dvw;
+    color: var(--nav-text-color);
+}
+
+.content-section {
+    min-height: 60vh;
+    padding: 37px 5dvw;
+    text-align: center;
+    align-content: center;
+      background: repeating-linear-gradient(0deg, var(--text-color), 
+        var(--text-color) 2px, 
+        var(--bg-color) 2px, 
+        var(--bg-color) 37px);
+}
+
+.content-section h2, .hero {
+    font-size: 2em;
+}
+
+
+/* Section Backgrounds */
+
+.content-section:nth-of-type(even) {
+    background: repeating-linear-gradient(0deg, var(--bg-color), 
+    var(--bg-color) 2px, 
+    var(--text-color) 2px, 
+    var(--text-color) 35px);
+}
+
+#home {
+    background: repeating-linear-gradient(0deg, var(--text-color), 
+        var(--text-color) 2px, 
+        var(--bg-color) 2px, 
+        var(--bg-color) 35px);
+}
+
+.hero, #home, #services, #features, #contact, #about, #qrcodegenerator, #broken {
+    border: var(--border);
+    border-radius: 50px;
+}
+
+#features p svg {
+    fill: var(--text-color);
+}
+
+/* Footer */
+footer {
+    text-align: center;
+    color: var(--nav-text-color);
+    z-index: 999;
+}
+footer p {
+    margin: 12px auto 0px auto;
+}
+
+/* Mobile First */
+.column p, .column h2, .column h3 {
+    width: calc(100% - 15dvw);
+}
+
+.column {
+    flex-wrap: wrap;
+}
+
+.row {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: normal;
+}
+
+/* Buttons */
+.button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 20px;
+    margin: 10px 0;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: var(--magic-number);
+    font-size: 16px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    border:var(--border);
+}
+
+.button:hover {
+    background-color: #218838;
+}
+
+.button svg {
+    margin-right: 10px;
+    width: 24px;
+    height: 24px;
+}
+
+.text-button {
+    background-color: #007bff;
+}
+
+.text-button:hover {
+    background-color: #0069d9;
+}
+
+input, textarea {
+    border-radius: var(--magic-number);
+    border:var(--border);
+    padding: 10px 20px;
+}
+
+/* effects */
+
+.crooked {
+    display:inline-block;
+}
+
+.physical {
+    box-shadow: 1px 1px 1px ;
+}
+
+#h1board, 
+.content-section h2 {
+font-family: helvetica;
+font-size: 15vmin;
+letter-spacing: -3px;
+padding: 5px 8px;
+color: white;
+background: rgb(220,0,0);
+width: fit-content;
+text-align: center;
+}
+
+#h1board {
+font-size: 15vmin;
+letter-spacing: -3px;
+line-height: 25vmin;
+/* padding: 18px 25px; */
+transform: rotate(-.75deg);
+}
+
+#h3board {
+    letter-spacing: -3px;
+    word-break: keep-all;
+    text-align: center;
+}
+
+#design {
+font-size: 18vmin;
+line-height: 20vmin;
+}
+
+#pretext {
+text-align: right;
+display: inline-block;
+line-height:0.75em;
+transform: skewY(-20deg)translateY(3vh);
+font-family: serif;
+font-size: 0.5em;
+letter-spacing: -2.5px;
+margin-right: 8px;
+}
+
+/* menu */
+
+
+.menu {
+    background-color: var(--bg-color);
+    border-radius: var(--magic-number);
+    border: var(--border);
+    box-shadow:var(--physical);
+}
+
+.menu ul, ul.tools {
+    list-style-type: none;
+    padding: 0;
+}
+ul.tools li {
+   margin: 24px 0;
+}
+
+.menu li {
+    display: flex; 
+    width: calc(100% - 50px);
+    letter-spacing: -1px;
+    font-weight: 900;
+    justify-content: space-between;
+    padding: 10px;
+}
+
+.menu-item {
+    flex-grow: 1;
+}
+
+.dots {
+    flex-grow: 10;
+    border-bottom: 5px dotted var(--text-color);
+    margin: 4px 4px;
+}
+
+.price {
+    white-space: nowrap;
+    padding-left: 10px;
+}
