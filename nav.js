@@ -1,38 +1,28 @@
-// Load the navigation content
+// load nav
 fetch('./nav.html')
     .then(response => response.text())
     .then(data => {
-        document.getElementById('nav-placeholder').innerHTML = data;
-        // Set up the event listener after the content is loaded
-        const menuToggle = document.getElementById('menu-toggle');
-        const navMenu = document.getElementById('nav-menu');
+    document.getElementById('nav-placeholder').innerHTML = data;
 
-        if (menuToggle && navMenu) {
-            menuToggle.addEventListener('click', () => {
-                navMenu.classList.toggle('active');
-            });
-        } else {
-            console.error('Error: menuToggle or navMenu not found');
-        }
-    })
-    .catch(error => console.error('Error loading navigation:', error));
+    // hamburger menu
+    const menuToggle = document.getElementById('menu-toggle');
+    const navMenu = document.getElementById('nav-menu');
 
-// Ensure the DOMContentLoaded event doesn't try to set up the listener too early
-document.addEventListener('DOMContentLoaded', () => {
-    // The setup will happen after fetch completion
-});
+    menuToggle?.addEventListener('click', () => {
+        navMenu.classList.toggle('active');
+    });
 
-document.querySelectorAll(".nav-item > a").forEach(item => {
-    item.addEventListener("click", function (event) {
-        // Prevent link navigation
-        event.preventDefault();
+    // submenu logic
+    document.querySelectorAll(".nav-item > a").forEach(item => {
+        item.addEventListener("click", function (event) {
+            event.preventDefault();
 
-        // Toggle submenu visibility
-        let submenu = this.nextElementSibling;
-        if (submenu) {
+            let submenu = this.nextElementSibling;
+            if (!submenu) return;
+
             let isVisible = submenu.style.display === "block";
             document.querySelectorAll(".sub-menu").forEach(menu => menu.style.display = "none");
             submenu.style.display = isVisible ? "none" : "block";
-        }
+        });
     });
 });
