@@ -11,8 +11,6 @@
     }
 	
 	.text-box { 
-	max-height: 6em;
-	overflow-y: scroll;
     width: 50vw;
 	}
 
