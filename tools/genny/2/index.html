@@ -1,0 +1,2291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Functional Websites — Static Site Builder</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+:root {
+  --bg: #0f0f13;
+  --bg2: #16161e;
+  --bg3: #1e1e2e;
+  --border: #2a2a3e;
+  --accent: #7c6af7;
+  --accent2: #5a9cf7;
+  --green: #4ade80;
+  --red: #f87171;
+  --yellow: #facc15;
+  --text: #e2e2f0;
+  --text2: #8888aa;
+  --radius: 8px;
+  --shadow: 0 4px 24px rgba(0,0,0,0.4);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; font-size: 14px; min-height: 100vh; }
+button { cursor: pointer; border: none; outline: none; font-family: inherit; font-size: 13px; }
+input, textarea, select { font-family: inherit; font-size: 13px; outline: none; }
+a { color: var(--accent); text-decoration: none; }
+scrollbar-width: thin;
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg2); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+/* ===== UTILITY ===== */
+.hidden { display: none !important; }
+.flex { display: flex; }
+.flex-col { display: flex; flex-direction: column; }
+.items-center { align-items: center; }
+.gap-1 { gap: 4px; }
+.gap-2 { gap: 8px; }
+.gap-3 { gap: 12px; }
+.ml-auto { margin-left: auto; }
+.text-sm { font-size: 12px; }
+.text-muted { color: var(--text2); }
+.truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ===== BUTTONS ===== */
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: var(--radius); font-size: 13px; font-weight: 500; transition: all .15s; }
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover { background: #6b59e8; }
+.btn-secondary { background: var(--bg3); color: var(--text); border: 1px solid var(--border); }
+.btn-secondary:hover { background: var(--border); }
+.btn-ghost { background: transparent; color: var(--text2); }
+.btn-ghost:hover { background: var(--bg3); color: var(--text); }
+.btn-danger { background: var(--red); color: #fff; }
+.btn-danger:hover { background: #e05555; }
+.btn-sm { padding: 4px 10px; font-size: 12px; }
+.btn-icon { padding: 6px; border-radius: 6px; background: transparent; color: var(--text2); }
+.btn-icon:hover { background: var(--bg3); color: var(--text); }
+.btn-green { background: var(--green); color: #000; font-weight: 600; }
+.btn-green:hover { background: #3dc76e; }
+
+/* ===== FORM ELEMENTS ===== */
+.input { background: var(--bg2); border: 1px solid var(--border); color: var(--text); border-radius: var(--radius); padding: 7px 10px; width: 100%; }
+.input:focus { border-color: var(--accent); }
+.label { display: block; color: var(--text2); font-size: 12px; margin-bottom: 4px; }
+.field { margin-bottom: 12px; }
+select.input { appearance: none; }
+
+/* ===== MODAL ===== */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(2px); }
+.modal { background: var(--bg2); border: 1px solid var(--border); border-radius: 12px; padding: 24px; width: 480px; max-width: 95vw; max-height: 90vh; overflow-y: auto; }
+.modal-title { font-size: 18px; font-weight: 600; margin-bottom: 16px; }
+.modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
+
+/* ===== TOAST ===== */
+#toasts { position: fixed; bottom: 20px; right: 20px; z-index: 2000; display: flex; flex-direction: column; gap: 8px; }
+.toast { background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 16px; font-size: 13px; display: flex; align-items: center; gap: 8px; animation: slideIn .2s ease; max-width: 320px; }
+.toast.success { border-color: var(--green); }
+.toast.error { border-color: var(--red); }
+.toast.info { border-color: var(--accent); }
+@keyframes slideIn { from { transform: translateX(40px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+/* ===== VIEWS ===== */
+#view-dashboard, #view-editor, #view-settings { display: none; }
+#view-dashboard.active, #view-editor.active, #view-settings.active { display: flex; flex-direction: column; min-height: 100vh; }
+
+/* ===== DASHBOARD ===== */
+.dash-header { background: var(--bg2); border-bottom: 1px solid var(--border); padding: 0 24px; height: 56px; display: flex; align-items: center; gap: 16px; flex-shrink: 0; }
+.dash-logo { font-size: 18px; font-weight: 700; color: var(--text); }
+.dash-logo span { color: var(--accent); }
+.dash-body { padding: 32px 24px; flex: 1; max-width: 1100px; width: 100%; margin: 0 auto; }
+.dash-section-title { font-size: 20px; font-weight: 600; margin-bottom: 20px; }
+.projects-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+.project-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; transition: border-color .15s; cursor: pointer; }
+.project-card:hover { border-color: var(--accent); }
+.project-thumb { height: 140px; background: var(--bg3); display: flex; align-items: center; justify-content: center; color: var(--text2); font-size: 32px; position: relative; overflow: hidden; }
+.project-thumb iframe { width: 100%; height: 100%; border: none; pointer-events: none; transform: scale(1); transform-origin: top left; }
+.project-info { padding: 12px; }
+.project-name { font-weight: 600; margin-bottom: 4px; truncate: true; }
+.project-meta { color: var(--text2); font-size: 12px; }
+.project-actions { padding: 8px 12px; border-top: 1px solid var(--border); display: flex; gap: 6px; }
+.new-project-card { border: 2px dashed var(--border); border-radius: 10px; height: 220px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; color: var(--text2); cursor: pointer; transition: all .15s; background: transparent; width: 100%; }
+.new-project-card:hover { border-color: var(--accent); color: var(--accent); background: rgba(124,106,247,0.05); }
+.new-project-icon { font-size: 32px; }
+
+/* ===== EDITOR LAYOUT ===== */
+#view-editor { flex-direction: column; }
+.editor-header { background: var(--bg2); border-bottom: 1px solid var(--border); height: 48px; display: flex; align-items: center; padding: 0 12px; gap: 8px; flex-shrink: 0; }
+.editor-title { font-weight: 600; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.editor-layout { display: flex; flex: 1; overflow: hidden; }
+
+/* Left panel - blocks */
+.editor-left { width: 220px; background: var(--bg2); border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; overflow-y: auto; }
+.panel-title { padding: 10px 12px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: var(--text2); border-bottom: 1px solid var(--border); }
+.block-btn { display: flex; align-items: center; gap: 8px; width: 100%; padding: 8px 12px; background: transparent; border: none; color: var(--text); text-align: left; border-radius: 0; transition: background .1s; font-size: 13px; }
+.block-btn:hover { background: var(--bg3); }
+.block-btn .block-icon { width: 28px; height: 28px; border-radius: 5px; background: var(--bg3); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+.blocks-section { margin-bottom: 4px; }
+.blocks-section-label { padding: 6px 12px 2px; font-size: 10px; text-transform: uppercase; letter-spacing: .1em; color: var(--text2); }
+
+/* Pages list */
+.pages-list { padding: 8px; display: flex; flex-direction: column; gap: 2px; }
+.page-item { display: flex; align-items: center; padding: 6px 8px; border-radius: 6px; cursor: pointer; gap: 6px; }
+.page-item:hover { background: var(--bg3); }
+.page-item.active { background: rgba(124,106,247,.15); color: var(--accent); }
+.page-item-name { flex: 1; truncate: true; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Center - canvas */
+.editor-center { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: #1a1a2e; }
+.editor-toolbar { background: var(--bg2); border-bottom: 1px solid var(--border); padding: 6px 12px; display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.device-btn { padding: 4px 8px; border-radius: 5px; background: transparent; border: 1px solid transparent; color: var(--text2); font-size: 16px; }
+.device-btn.active, .device-btn:hover { border-color: var(--border); background: var(--bg3); color: var(--text); }
+.canvas-wrap { flex: 1; overflow: auto; padding: 20px; display: flex; justify-content: center; align-items: flex-start; }
+.canvas-frame { background: #fff; border-radius: 4px; box-shadow: var(--shadow); transition: width .2s; min-height: 600px; width: 100%; max-width: 100%; position: relative; }
+.canvas-frame.device-tablet { width: 768px; }
+.canvas-frame.device-mobile { width: 375px; }
+#canvas-iframe { width: 100%; border: none; display: block; min-height: 600px; }
+
+/* Right panel - properties */
+.editor-right { width: 260px; background: var(--bg2); border-left: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; overflow-y: auto; }
+.props-panel { padding: 12px; }
+.props-section { margin-bottom: 16px; }
+.props-section-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: var(--text2); margin-bottom: 8px; }
+.color-input-wrap { display: flex; gap: 6px; align-items: center; }
+.color-swatch { width: 30px; height: 30px; border-radius: 5px; border: 2px solid var(--border); cursor: pointer; flex-shrink: 0; }
+
+/* Code editor mode */
+.code-editor-wrap { flex: 1; display: flex; overflow: hidden; }
+.code-tabs { background: var(--bg2); border-bottom: 1px solid var(--border); display: flex; padding: 0 12px; gap: 2px; align-items: flex-end; }
+.code-tab { padding: 7px 14px; border-radius: 6px 6px 0 0; font-size: 12px; cursor: pointer; color: var(--text2); border: 1px solid transparent; border-bottom: none; }
+.code-tab.active { background: var(--bg3); color: var(--text); border-color: var(--border); }
+.code-area { flex: 1; background: var(--bg3); display: flex; flex-direction: column; overflow: hidden; }
+.code-textarea { flex: 1; background: transparent; color: var(--text); border: none; padding: 16px; font-family: 'Consolas', 'Monaco', monospace; font-size: 13px; line-height: 1.6; resize: none; overflow: auto; tab-size: 2; }
+.code-textarea:focus { outline: none; }
+
+/* Selected block highlight */
+.block-selected { outline: 2px solid var(--accent) !important; outline-offset: 2px; }
+
+/* Tabs in editor */
+.editor-mode-tabs { display: flex; gap: 2px; }
+.editor-mode-tab { padding: 5px 12px; border-radius: 5px; font-size: 12px; font-weight: 500; cursor: pointer; background: transparent; border: 1px solid transparent; color: var(--text2); }
+.editor-mode-tab.active { background: var(--bg3); border-color: var(--border); color: var(--text); }
+
+/* Settings page */
+.settings-header { background: var(--bg2); border-bottom: 1px solid var(--border); padding: 0 24px; height: 56px; display: flex; align-items: center; gap: 16px; }
+.settings-body { padding: 32px 24px; max-width: 700px; margin: 0 auto; width: 100%; }
+.settings-section { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin-bottom: 20px; }
+.settings-section-title { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+.settings-section-desc { color: var(--text2); font-size: 13px; margin-bottom: 16px; }
+.status-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 99px; font-size: 11px; font-weight: 600; }
+.status-badge.connected { background: rgba(74,222,128,.15); color: var(--green); border: 1px solid rgba(74,222,128,.3); }
+.status-badge.disconnected { background: rgba(248,113,113,.15); color: var(--red); border: 1px solid rgba(248,113,113,.3); }
+
+/* Deploy modal */
+.deploy-step { padding: 12px; background: var(--bg3); border-radius: 8px; margin-bottom: 8px; }
+.deploy-step-title { font-weight: 600; margin-bottom: 4px; }
+.deploy-step-status { font-size: 12px; color: var(--text2); display: flex; align-items: center; gap: 6px; }
+.spinner { width: 12px; height: 12px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .6s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Drag ghost */
+.dragging { opacity: .5; }
+.drag-over { outline: 2px dashed var(--accent); }
+
+/* Responsive builder elements */
+.block-wrapper { position: relative; min-height: 20px; }
+.block-wrapper:hover .block-controls { opacity: 1; }
+.block-controls { position: absolute; top: 4px; right: 4px; display: flex; gap: 4px; opacity: 0; transition: opacity .15s; z-index: 10; }
+.block-ctrl-btn { width: 24px; height: 24px; border-radius: 4px; background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 12px; cursor: pointer; border: none; }
+
+/* Publish bar */
+.publish-bar { background: var(--bg2); border-top: 1px solid var(--border); padding: 8px 16px; display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+
+/* ===== IMAGE LIBRARY ===== */
+.img-lib-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 8px; max-height: 380px; overflow-y: auto; margin-bottom: 12px; min-height: 60px; }
+.img-lib-item { position: relative; border-radius: 6px; overflow: hidden; border: 2px solid var(--border); cursor: pointer; transition: border-color .15s; background: var(--bg3); }
+.img-lib-item:hover { border-color: var(--accent); }
+.img-lib-item.selected { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(124,106,247,.3); }
+.img-lib-item img { width: 100%; height: 80px; object-fit: cover; display: block; }
+.img-lib-name { font-size: 10px; padding: 3px 5px; color: var(--text2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; background: var(--bg2); }
+.img-lib-del { position: absolute; top: 2px; right: 2px; width: 18px; height: 18px; border-radius: 3px; background: rgba(0,0,0,0.75); color: #fff; font-size: 11px; display: none; align-items: center; justify-content: center; border: none; cursor: pointer; line-height: 1; padding: 0; }
+.img-lib-item:hover .img-lib-del { display: flex; }
+
+/* ===== PROPS TABS ===== */
+.props-tabs { display: flex; border-bottom: 1px solid var(--border); margin: -12px -12px 12px; }
+.props-tab-btn { padding: 9px 14px; font-size: 12px; font-weight: 500; cursor: pointer; color: var(--text2); background: transparent; border: none; border-bottom: 2px solid transparent; transition: all .15s; }
+.props-tab-btn.active { color: var(--text); border-bottom-color: var(--accent); }
+</style>
+</head>
+<body>
+
+<!-- TOAST CONTAINER -->
+<div id="toasts"></div>
+
+<!-- ==================== DASHBOARD ==================== -->
+<div id="view-dashboard" class="active">
+  <header class="dash-header">
+    <div class="dash-logo"><span>Functional</span> Websites</div>
+    <div class="ml-auto flex gap-2">
+      <button class="btn btn-ghost btn-sm" onclick="showSettings()">⚙ Settings</button>
+      <button class="btn btn-primary btn-sm" onclick="openNewProjectModal()">+ New Website</button>
+    </div>
+  </header>
+  <div class="dash-body">
+    <div class="dash-section-title">My Websites</div>
+    <div class="projects-grid" id="projects-grid">
+      <button class="new-project-card" onclick="openNewProjectModal()">
+        <span class="new-project-icon">＋</span>
+        <span>Create New Website</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== SETTINGS ==================== -->
+<div id="view-settings">
+  <header class="settings-header">
+    <button class="btn btn-ghost btn-sm" onclick="showDashboard()">← Back</button>
+    <span style="font-weight:600;font-size:16px;">Settings</span>
+  </header>
+  <div class="settings-body">
+    <!-- GitHub -->
+    <div class="settings-section">
+      <div class="flex items-center gap-2" style="margin-bottom:4px">
+        <div class="settings-section-title">GitHub Integration</div>
+        <span id="gh-status-badge" class="status-badge disconnected">● Disconnected</span>
+      </div>
+      <div class="settings-section-desc">Connect your GitHub account to push websites directly to a repository.</div>
+      <div class="field">
+        <label class="label">Personal Access Token</label>
+        <input class="input" id="gh-token" type="password" placeholder="ghp_xxxxxxxxxxxx">
+      </div>
+      <div class="field">
+        <label class="label">Default Username/Org</label>
+        <input class="input" id="gh-owner" type="text" placeholder="your-username">
+      </div>
+      <div class="flex gap-2">
+        <button class="btn btn-primary btn-sm" onclick="saveGithubSettings()">Save &amp; Verify</button>
+        <button class="btn btn-secondary btn-sm" onclick="clearGithubSettings()">Disconnect</button>
+      </div>
+    </div>
+    <!-- Cloudflare -->
+    <div class="settings-section">
+      <div class="flex items-center gap-2" style="margin-bottom:4px">
+        <div class="settings-section-title">Cloudflare Pages Integration</div>
+        <span id="cf-status-badge" class="status-badge disconnected">● Disconnected</span>
+      </div>
+      <div class="settings-section-desc">Connect Cloudflare to deploy websites to Cloudflare Pages via Direct Upload.</div>
+      <div class="field">
+        <label class="label">API Token</label>
+        <input class="input" id="cf-token" type="password" placeholder="Your Cloudflare API Token">
+      </div>
+      <div class="field">
+        <label class="label">Account ID</label>
+        <input class="input" id="cf-account-id" type="text" placeholder="32-character account ID">
+      </div>
+      <div class="flex gap-2">
+        <button class="btn btn-primary btn-sm" onclick="saveCloudflareSettings()">Save &amp; Verify</button>
+        <button class="btn btn-secondary btn-sm" onclick="clearCloudflareSettings()">Disconnect</button>
+      </div>
+    </div>
+    <!-- Storage Info -->
+    <div class="settings-section">
+      <div class="settings-section-title">Storage</div>
+      <div class="settings-section-desc">All websites are stored in your browser's localStorage.</div>
+      <div id="storage-info" class="text-muted text-sm" style="margin-bottom:12px"></div>
+      <button class="btn btn-danger btn-sm" onclick="clearAllData()">Clear All Data</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== EDITOR ==================== -->
+<div id="view-editor">
+  <div class="editor-header">
+    <button class="btn btn-ghost btn-sm" onclick="exitEditor()">← Dashboard</button>
+    <div class="editor-title" id="editor-project-name"></div>
+    <div class="editor-mode-tabs ml-auto" id="editor-mode-tabs">
+      <button class="editor-mode-tab active" data-mode="visual" onclick="switchEditorMode('visual')">Visual</button>
+      <button class="editor-mode-tab" data-mode="code" onclick="switchEditorMode('code')">Code</button>
+    </div>
+    <button class="btn btn-secondary btn-sm" onclick="openImageLibrary(null)">🖼 Images</button>
+    <button class="btn btn-secondary btn-sm" onclick="previewProject()">👁 Preview</button>
+    <button class="btn btn-secondary btn-sm" onclick="downloadZip()">⬇ Download ZIP</button>
+    <button class="btn btn-primary btn-sm" onclick="saveProject()">💾 Save</button>
+    <button class="btn btn-green btn-sm" onclick="openDeployModal()">🚀 Deploy</button>
+  </div>
+
+  <!-- Visual mode -->
+  <div id="mode-visual" class="editor-layout" style="flex:1;overflow:hidden;">
+    <!-- Left: blocks + pages -->
+    <div class="editor-left">
+      <div class="panel-title">Pages</div>
+      <div class="pages-list" id="pages-list"></div>
+      <button class="btn btn-ghost btn-sm" style="margin:4px 8px;" onclick="addPage()">+ Add Page</button>
+      <div class="panel-title" style="margin-top:8px;">Blocks</div>
+      <div class="blocks-section">
+        <div class="blocks-section-label">Layout</div>
+        <button class="block-btn" onclick="addBlock('section')"><span class="block-icon">▭</span> Section</button>
+        <button class="block-btn" onclick="addBlock('columns2')"><span class="block-icon">⊞</span> 2 Columns</button>
+        <button class="block-btn" onclick="addBlock('columns3')"><span class="block-icon">⊟</span> 3 Columns</button>
+        <button class="block-btn" onclick="addBlock('divider')"><span class="block-icon">─</span> Divider</button>
+        <button class="block-btn" onclick="addBlock('spacer')"><span class="block-icon">↕</span> Spacer</button>
+      </div>
+      <div class="blocks-section">
+        <div class="blocks-section-label">Content</div>
+        <button class="block-btn" onclick="addBlock('nav')"><span class="block-icon">☰</span> Navbar</button>
+        <button class="block-btn" onclick="addBlock('hero')"><span class="block-icon">★</span> Hero</button>
+        <button class="block-btn" onclick="addBlock('heading')"><span class="block-icon">H</span> Heading</button>
+        <button class="block-btn" onclick="addBlock('text')"><span class="block-icon">¶</span> Text</button>
+        <button class="block-btn" onclick="addBlock('image')"><span class="block-icon">🖼</span> Image</button>
+        <button class="block-btn" onclick="addBlock('button')"><span class="block-icon">□</span> Button</button>
+        <button class="block-btn" onclick="addBlock('cards')"><span class="block-icon">▦</span> Cards</button>
+        <button class="block-btn" onclick="addBlock('features')"><span class="block-icon">✦</span> Features</button>
+        <button class="block-btn" onclick="addBlock('cta')"><span class="block-icon">⚡</span> CTA</button>
+        <button class="block-btn" onclick="addBlock('footer')"><span class="block-icon">▬</span> Footer</button>
+        <button class="block-btn" onclick="addBlock('form')"><span class="block-icon">✉</span> Contact Form</button>
+        <button class="block-btn" onclick="addBlock('html')"><span class="block-icon">&lt;/&gt;</span> Custom HTML</button>
+      </div>
+    </div>
+
+    <!-- Center: canvas -->
+    <div class="editor-center">
+      <div class="editor-toolbar">
+        <button class="device-btn active" data-device="desktop" onclick="setDevice('desktop')" title="Desktop">🖥</button>
+        <button class="device-btn" data-device="tablet" onclick="setDevice('tablet')" title="Tablet">📱</button>
+        <button class="device-btn" data-device="mobile" onclick="setDevice('mobile')" title="Mobile">📲</button>
+        <span class="text-muted text-sm ml-auto" id="page-url-display"></span>
+      </div>
+      <div class="canvas-wrap">
+        <div class="canvas-frame" id="canvas-frame">
+          <iframe id="canvas-iframe" sandbox="allow-scripts allow-same-origin"></iframe>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: properties -->
+    <div class="editor-right">
+      <div class="panel-title">Properties</div>
+      <div class="props-panel" id="props-panel">
+        <div class="text-muted text-sm">Click a block in the canvas to edit its properties.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Code mode -->
+  <div id="mode-code" class="hidden" style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
+    <div class="flex items-center" style="background:var(--bg2);border-bottom:1px solid var(--border);padding:0 12px;">
+      <div class="code-tabs" id="code-tabs">
+        <div class="code-tab active" data-file="html" onclick="switchCodeTab('html')">index.html</div>
+        <div class="code-tab" data-file="css" onclick="switchCodeTab('css')">style.css</div>
+        <div class="code-tab" data-file="js" onclick="switchCodeTab('js')">script.js</div>
+      </div>
+      <button class="btn btn-primary btn-sm ml-auto" style="margin:6px 0;" onclick="applyCode()">▶ Apply</button>
+    </div>
+    <div class="code-area">
+      <textarea class="code-textarea" id="code-editor" spellcheck="false"></textarea>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== MODALS ==================== -->
+<!-- New Project Modal -->
+<div id="modal-new-project" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-title">Create New Website</div>
+    <div class="field">
+      <label class="label">Website Name</label>
+      <input class="input" id="new-project-name" type="text" placeholder="My Awesome Site">
+    </div>
+    <div class="field">
+      <label class="label">Template</label>
+      <select class="input" id="new-project-template">
+        <option value="blank">Blank</option>
+        <option value="landing">Landing Page</option>
+        <option value="blog">Blog / Article</option>
+        <option value="portfolio">Portfolio</option>
+        <option value="docs">Documentation</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal('modal-new-project')">Cancel</button>
+      <button class="btn btn-primary" onclick="createProject()">Create Website</button>
+    </div>
+  </div>
+</div>
+
+<!-- Rename Modal -->
+<div id="modal-rename" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-title">Rename Website</div>
+    <div class="field">
+      <label class="label">Name</label>
+      <input class="input" id="rename-input" type="text">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal('modal-rename')">Cancel</button>
+      <button class="btn btn-primary" onclick="confirmRename()">Rename</button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirm Modal -->
+<div id="modal-delete" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-title">Delete Website</div>
+    <p style="color:var(--text2);margin-bottom:16px;">Are you sure you want to delete <strong id="delete-project-name"></strong>? This cannot be undone.</p>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal('modal-delete')">Cancel</button>
+      <button class="btn btn-danger" onclick="confirmDelete()">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Page Modal -->
+<div id="modal-add-page" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-title">Add Page</div>
+    <div class="field">
+      <label class="label">Page Name</label>
+      <input class="input" id="new-page-name" type="text" placeholder="About">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal('modal-add-page')">Cancel</button>
+      <button class="btn btn-primary" onclick="confirmAddPage()">Add Page</button>
+    </div>
+  </div>
+</div>
+
+<!-- Deploy Modal -->
+<div id="modal-deploy" class="modal-overlay hidden">
+  <div class="modal" style="width:560px">
+    <div class="modal-title">🚀 Deploy Website</div>
+    <div id="deploy-body">
+      <div style="margin-bottom:16px;">
+        <div style="font-weight:600;margin-bottom:8px;">Choose Deployment Target</div>
+        <div style="display:flex;gap:10px;">
+          <button class="deploy-target-btn btn btn-secondary" id="btn-deploy-github" onclick="selectDeployTarget('github')" style="flex:1;flex-direction:column;height:80px;gap:4px;">
+            <span style="font-size:24px;">🐙</span>
+            <span>GitHub Pages</span>
+          </button>
+          <button class="deploy-target-btn btn btn-secondary" id="btn-deploy-cloudflare" onclick="selectDeployTarget('cloudflare')" style="flex:1;flex-direction:column;height:80px;gap:4px;">
+            <span style="font-size:24px;">☁️</span>
+            <span>Cloudflare Pages</span>
+          </button>
+        </div>
+      </div>
+      <div id="deploy-github-config" class="hidden">
+        <div style="font-weight:600;margin-bottom:8px;">GitHub Configuration</div>
+        <div class="field">
+          <label class="label">Repository Name</label>
+          <input class="input" id="deploy-gh-repo" type="text" placeholder="my-website (will create if doesn't exist)">
+        </div>
+        <div class="field">
+          <label class="label">Branch</label>
+          <input class="input" id="deploy-gh-branch" type="text" value="main">
+        </div>
+        <div class="field">
+          <label class="label">Subfolder (optional)</label>
+          <input class="input" id="deploy-gh-folder" type="text" placeholder="Leave blank for root">
+        </div>
+        <div style="background:rgba(124,106,247,.1);border:1px solid rgba(124,106,247,.3);border-radius:8px;padding:10px;margin-bottom:12px;font-size:12px;color:var(--text2);">
+          💡 To use GitHub Pages: after deployment, go to your repo Settings → Pages → set source to the <code>main</code> branch.
+        </div>
+      </div>
+      <div id="deploy-cloudflare-config" class="hidden">
+        <div style="font-weight:600;margin-bottom:8px;">Cloudflare Pages Configuration</div>
+        <div class="field">
+          <label class="label">Project Name</label>
+          <input class="input" id="deploy-cf-project" type="text" placeholder="my-website">
+        </div>
+        <div style="background:rgba(124,106,247,.1);border:1px solid rgba(124,106,247,.3);border-radius:8px;padding:10px;margin-bottom:12px;font-size:12px;color:var(--text2);">
+          💡 Uses Cloudflare Pages Direct Upload. Project will be created automatically if it doesn't exist.
+        </div>
+      </div>
+      <div id="deploy-progress" class="hidden">
+        <div id="deploy-steps"></div>
+      </div>
+    </div>
+    <div class="modal-actions" id="deploy-actions">
+      <button class="btn btn-secondary" onclick="closeModal('modal-deploy')">Cancel</button>
+      <button class="btn btn-primary" id="btn-deploy-go" onclick="startDeploy()" disabled>Deploy</button>
+    </div>
+  </div>
+</div>
+
+<!-- Block Edit Modal (for complex blocks) -->
+<div id="modal-block-edit" class="modal-overlay hidden">
+  <div class="modal" style="width:600px">
+    <div class="modal-title" id="block-edit-title">Edit Block</div>
+    <div id="block-edit-body"></div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal('modal-block-edit')">Cancel</button>
+      <button class="btn btn-primary" onclick="applyBlockEdit()">Apply</button>
+    </div>
+  </div>
+</div>
+
+<!-- Image Library Modal -->
+<div id="modal-img-lib" class="modal-overlay hidden">
+  <div class="modal" style="width:620px;max-height:85vh;display:flex;flex-direction:column;">
+    <div class="flex items-center gap-2" style="margin-bottom:14px;flex-shrink:0;">
+      <div class="modal-title" style="margin:0;">🖼 Image Library</div>
+      <div class="ml-auto flex gap-2">
+        <button class="btn btn-secondary btn-sm" onclick="document.getElementById('img-upload-input').click()">⬆ Upload</button>
+        <button class="btn btn-secondary btn-sm" onclick="openImportUrlModal()">🔗 Import URL</button>
+      </div>
+    </div>
+    <input type="file" id="img-upload-input" accept="image/*" multiple style="display:none" onchange="uploadImages(this)">
+    <div id="img-lib-grid" class="img-lib-grid"></div>
+    <div id="img-lib-empty" class="text-muted text-sm" style="text-align:center;padding:32px 0;">No images yet. Upload files or import from a URL.</div>
+    <div class="modal-actions" style="flex-shrink:0;">
+      <button class="btn btn-secondary" onclick="closeModal('modal-img-lib')">Close</button>
+      <button class="btn btn-primary" id="btn-img-lib-use" onclick="useSelectedLibraryImage()" style="display:none;">Use Selected Image</button>
+    </div>
+  </div>
+</div>
+
+<!-- Import Image from URL Modal -->
+<div id="modal-import-url" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-title">Import Image from URL</div>
+    <div class="field">
+      <label class="label">Image URL</label>
+      <input class="input" id="import-url-input" type="url" placeholder="https://example.com/photo.jpg">
+    </div>
+    <div class="field">
+      <label class="label">File Name (optional)</label>
+      <input class="input" id="import-url-name" type="text" placeholder="photo.jpg">
+    </div>
+    <div id="import-url-status" style="font-size:12px;color:var(--text2);margin-bottom:8px;display:none;"></div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="cancelImportUrl()">Cancel</button>
+      <button class="btn btn-primary" id="btn-import-url-go" onclick="importImageFromUrl()">Import</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// STATE
+// ============================================================
+const STATE = {
+  projects: [],        // list of {id, name, created, modified}
+  currentProjectId: null,
+  currentPageIndex: 0,
+  currentMode: 'visual',
+  currentDevice: 'desktop',
+  currentCodeTab: 'html',
+  selectedBlockId: null,
+  deployTarget: null,
+  editingBlockId: null,
+  propsTab: 'page',
+  imgLibTargetBlockId: null,
+  imgLibSelectedId: null,
+};
+
+// ============================================================
+// STORAGE
+// ============================================================
+const LS = {
+  PREFIX: 'fw_',
+  get(k) { try { return JSON.parse(localStorage.getItem(this.PREFIX+k)); } catch(e) { return null; } },
+  set(k,v) { localStorage.setItem(this.PREFIX+k, JSON.stringify(v)); },
+  del(k) { localStorage.removeItem(this.PREFIX+k); },
+  keys() { return Object.keys(localStorage).filter(k=>k.startsWith(this.PREFIX)).map(k=>k.slice(this.PREFIX.length)); }
+};
+
+function loadProjects() {
+  STATE.projects = LS.get('projects') || [];
+}
+function saveProjectsMeta() {
+  LS.set('projects', STATE.projects);
+}
+function getProjectData(id) {
+  return LS.get('proj_'+id) || createBlankProjectData('Untitled');
+}
+function saveProjectData(id, data) {
+  LS.set('proj_'+id, data);
+}
+
+// ============================================================
+// PROJECT DATA STRUCTURE
+// ============================================================
+function createBlankProjectData(name) {
+  return {
+    name,
+    globalCSS: `/* Global styles */\nbody { margin: 0; font-family: 'Segoe UI', system-ui, sans-serif; }\n* { box-sizing: border-box; }`,
+    globalJS: `// Global scripts\n`,
+    meta: { description: '', keywords: '', author: '', favicon: '', ogType: 'website', ogImage: '', twitterCard: 'summary_large_image' },
+    images: [],
+    pages: [
+      { id: uid(), name: 'Home', slug: 'index', blocks: [], meta: {} }
+    ]
+  };
+}
+
+function applyTemplate(data, template) {
+  if (template === 'blank') return data;
+  const p = data.pages[0];
+  if (template === 'landing') {
+    p.blocks = [
+      mkBlock('nav', { brand: 'My Site', links: 'Home, About, Contact' }),
+      mkBlock('hero', { heading: 'Welcome to My Website', subheading: 'Build something amazing today.', buttonText: 'Get Started', buttonHref: '#', bgColor: '#7c6af7', textColor: '#ffffff' }),
+      mkBlock('features', {}),
+      mkBlock('cta', {}),
+      mkBlock('footer', {}),
+    ];
+    data.globalCSS += `\nsection { padding: 60px 20px; }\n.container { max-width: 1100px; margin: 0 auto; }`;
+  } else if (template === 'portfolio') {
+    p.blocks = [
+      mkBlock('nav', { brand: 'Portfolio', links: 'Work, About, Contact' }),
+      mkBlock('hero', { heading: "Hi, I'm Your Name", subheading: 'Designer & Developer', buttonText: 'View Work', buttonHref: '#work', bgColor: '#1a1a2e', textColor: '#ffffff' }),
+      mkBlock('cards', {}),
+      mkBlock('footer', {}),
+    ];
+  } else if (template === 'blog') {
+    p.blocks = [
+      mkBlock('nav', { brand: 'My Blog', links: 'Home, Articles, About' }),
+      mkBlock('hero', { heading: 'Welcome to My Blog', subheading: 'Thoughts, stories, and ideas.', buttonText: 'Read Articles', buttonHref: '#', bgColor: '#1e1e2e', textColor: '#ffffff' }),
+      mkBlock('text', { content: '<p>Start writing your blog content here. Add more text blocks, headings, and images to build your first article.</p>' }),
+      mkBlock('footer', {}),
+    ];
+  } else if (template === 'docs') {
+    p.blocks = [
+      mkBlock('nav', { brand: 'Docs', links: 'Guide, API, Examples' }),
+      mkBlock('heading', { text: 'Documentation', level: 'h1' }),
+      mkBlock('text', { content: '<p>Welcome to the documentation. Use the navigation to explore topics.</p>' }),
+      mkBlock('footer', {}),
+    ];
+    data.pages.push({ id: uid(), name: 'Getting Started', slug: 'getting-started', blocks: [
+      mkBlock('heading', { text: 'Getting Started', level: 'h1' }),
+      mkBlock('text', { content: '<p>This is the getting started guide.</p>' }),
+    ]});
+  }
+  return data;
+}
+
+// ============================================================
+// BLOCK DEFINITIONS
+// ============================================================
+function uid() {
+  return Math.random().toString(36).slice(2,10) + Date.now().toString(36);
+}
+
+function mkBlock(type, props = {}) {
+  const defaults = {
+    nav: { brand: 'My Site', links: 'Home, About, Contact', bgColor: '#ffffff', textColor: '#333333', linkColor: '#333333' },
+    hero: { heading: 'Welcome', subheading: 'Your tagline here.', buttonText: 'Learn More', buttonHref: '#', bgColor: '#7c6af7', textColor: '#ffffff', btnBg: '#ffffff', btnColor: '#7c6af7' },
+    heading: { text: 'Section Title', level: 'h2', align: 'left', color: '#111111' },
+    text: { content: '<p>Add your text content here. Click to edit.</p>', align: 'left', color: '#333333' },
+    image: { src: '', alt: 'Image', width: '100%', align: 'center', rounded: true, caption: '' },
+    button: { text: 'Click Here', href: '#', bgColor: '#7c6af7', textColor: '#ffffff', align: 'center', size: 'medium', rounded: true },
+    section: { bgColor: '#ffffff', padding: '60px 20px', maxWidth: '1100px' },
+    columns2: { bgColor: '#ffffff', padding: '40px 20px', col1: '<p>Column 1 content</p>', col2: '<p>Column 2 content</p>', gap: '24px' },
+    columns3: { bgColor: '#ffffff', padding: '40px 20px', col1: '<p>Column 1</p>', col2: '<p>Column 2</p>', col3: '<p>Column 3</p>', gap: '20px' },
+    divider: { color: '#dddddd', thickness: '1px', margin: '20px 0' },
+    spacer: { height: '40px' },
+    cards: { bgColor: '#f8f8f8', padding: '60px 20px', title: 'Our Work', cards: [
+      { title: 'Project One', desc: 'Description of this project.', img: '' },
+      { title: 'Project Two', desc: 'Description of this project.', img: '' },
+      { title: 'Project Three', desc: 'Description of this project.', img: '' },
+    ]},
+    features: { bgColor: '#ffffff', padding: '60px 20px', title: 'Features', features: [
+      { icon: '⚡', title: 'Fast', desc: 'Lightning fast performance.' },
+      { icon: '🎨', title: 'Beautiful', desc: 'Stunning designs out of the box.' },
+      { icon: '🔒', title: 'Secure', desc: 'Built with security in mind.' },
+    ]},
+    cta: { bgColor: '#7c6af7', textColor: '#ffffff', padding: '80px 20px', heading: 'Ready to get started?', subheading: 'Join thousands of happy users today.', buttonText: 'Get Started Free', buttonHref: '#', btnBg: '#ffffff', btnColor: '#7c6af7' },
+    footer: { bgColor: '#1a1a1a', textColor: '#aaaaaa', linkColor: '#cccccc', brand: 'My Site', tagline: 'Building the web.', copyright: '© 2025 My Site. All rights reserved.' },
+    form: { bgColor: '#f8f8f8', padding: '60px 20px', title: 'Contact Us', submitText: 'Send Message', action: '#' },
+    html: { code: '<div style="padding:20px;background:#f0f0f0;border-radius:8px;text-align:center;">\n  <p>Custom HTML block. Click Properties to edit.</p>\n</div>' },
+  };
+  return { id: uid(), type, props: Object.assign({}, defaults[type] || {}, props) };
+}
+
+// ============================================================
+// BLOCK RENDERERS
+// ============================================================
+function renderBlock(block, editing = false) {
+  const p = block.props;
+  const sel = editing ? `data-block-id="${block.id}" class="block-wrapper"` : '';
+
+  switch(block.type) {
+    case 'nav': {
+      const links = (p.links||'').split(',').map(l=>l.trim()).filter(Boolean);
+      const linkHtml = links.map(l=>`<a href="#" style="color:${p.linkColor||'#333'};text-decoration:none;padding:0 12px;font-weight:500;">${l}</a>`).join('');
+      return `<nav ${sel} style="background:${p.bgColor||'#fff'};padding:14px 24px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 1px 4px rgba(0,0,0,0.08);">
+  <div style="font-weight:700;font-size:18px;color:${p.textColor||'#333'};">${p.brand||'My Site'}</div>
+  <div>${linkHtml}</div>
+</nav>`;
+    }
+    case 'hero': {
+      return `<section ${sel} style="background:${p.bgColor||'#7c6af7'};color:${p.textColor||'#fff'};padding:100px 24px;text-align:center;">
+  <h1 style="font-size:clamp(28px,5vw,56px);font-weight:800;margin:0 0 16px;">${p.heading||'Welcome'}</h1>
+  <p style="font-size:clamp(14px,2vw,20px);margin:0 0 32px;opacity:0.85;">${p.subheading||''}</p>
+  ${p.buttonText ? `<a href="${p.buttonHref||'#'}" style="background:${p.btnBg||'#fff'};color:${p.btnColor||'#7c6af7'};padding:14px 32px;border-radius:6px;font-weight:600;font-size:16px;text-decoration:none;display:inline-block;">${p.buttonText}</a>` : ''}
+</section>`;
+    }
+    case 'heading': {
+      const tag = p.level || 'h2';
+      const sizes = { h1:'2.4em', h2:'1.8em', h3:'1.4em', h4:'1.1em' };
+      return `<${tag} ${sel} style="text-align:${p.align||'left'};color:${p.color||'#111'};font-size:${sizes[tag]||'1.8em'};padding:12px 24px;margin:0;">${p.text||'Title'}</${tag}>`;
+    }
+    case 'text': {
+      return `<div ${sel} style="padding:8px 24px;color:${p.color||'#333'};text-align:${p.align||'left'};line-height:1.7;">${p.content||''}</div>`;
+    }
+    case 'image': {
+      const rounded = p.rounded ? 'border-radius:8px;' : '';
+      return `<div ${sel} style="padding:16px 24px;text-align:${p.align||'center'};">
+  ${p.src ? `<img src="${p.src}" alt="${p.alt||''}" style="max-width:${p.width||'100%'};${rounded}display:inline-block;">` : `<div style="background:#e0e0e0;height:200px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#888;">Click to set image URL</div>`}
+  ${p.caption ? `<p style="font-size:13px;color:#888;margin-top:6px;">${p.caption}</p>` : ''}
+</div>`;
+    }
+    case 'button': {
+      const sizes = { small:'10px 20px', medium:'12px 28px', large:'16px 40px' };
+      const pad = sizes[p.size||'medium'];
+      const radius = p.rounded ? '6px' : '0';
+      return `<div ${sel} style="padding:12px 24px;text-align:${p.align||'center'};">
+  <a href="${p.href||'#'}" style="background:${p.bgColor||'#7c6af7'};color:${p.textColor||'#fff'};padding:${pad};border-radius:${radius};font-weight:600;text-decoration:none;display:inline-block;">${p.text||'Button'}</a>
+</div>`;
+    }
+    case 'section': {
+      return `<section ${sel} style="background:${p.bgColor||'#fff'};padding:${p.padding||'60px 20px'};">
+  <div style="max-width:${p.maxWidth||'1100px'};margin:0 auto;"><!-- Section content --></div>
+</section>`;
+    }
+    case 'columns2': {
+      return `<div ${sel} style="background:${p.bgColor||'#fff'};padding:${p.padding||'40px 20px'};">
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:${p.gap||'24px'};max-width:1100px;margin:0 auto;">
+    <div>${p.col1||'<p>Column 1</p>'}</div>
+    <div>${p.col2||'<p>Column 2</p>'}</div>
+  </div>
+</div>`;
+    }
+    case 'columns3': {
+      return `<div ${sel} style="background:${p.bgColor||'#fff'};padding:${p.padding||'40px 20px'};">
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:${p.gap||'20px'};max-width:1100px;margin:0 auto;">
+    <div>${p.col1||'<p>Col 1</p>'}</div>
+    <div>${p.col2||'<p>Col 2</p>'}</div>
+    <div>${p.col3||'<p>Col 3</p>'}</div>
+  </div>
+</div>`;
+    }
+    case 'divider': {
+      return `<div ${sel} style="padding:0 24px;margin:${p.margin||'20px 0'};"><hr style="border:none;border-top:${p.thickness||'1px'} solid ${p.color||'#ddd'};"></div>`;
+    }
+    case 'spacer': {
+      return `<div ${sel} style="height:${p.height||'40px'};"></div>`;
+    }
+    case 'cards': {
+      const cards = (p.cards||[]).map(c=>`
+  <div style="background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);">
+    ${c.img ? `<img src="${c.img}" style="width:100%;height:180px;object-fit:cover;">` : `<div style="height:180px;background:#e8e8e8;display:flex;align-items:center;justify-content:center;color:#aaa;font-size:32px;">🖼</div>`}
+    <div style="padding:16px;">
+      <h3 style="margin:0 0 8px;font-size:16px;">${c.title||'Card Title'}</h3>
+      <p style="margin:0;color:#666;font-size:14px;">${c.desc||''}</p>
+    </div>
+  </div>`).join('');
+      return `<section ${sel} style="background:${p.bgColor||'#f8f8f8'};padding:${p.padding||'60px 20px'};">
+  <h2 style="text-align:center;margin:0 0 32px;font-size:2em;">${p.title||'Our Work'}</h2>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:24px;max-width:1100px;margin:0 auto;">${cards}</div>
+</section>`;
+    }
+    case 'features': {
+      const feats = (p.features||[]).map(f=>`
+  <div style="text-align:center;padding:24px;">
+    <div style="font-size:40px;margin-bottom:16px;">${f.icon||'✦'}</div>
+    <h3 style="margin:0 0 8px;font-size:18px;">${f.title||'Feature'}</h3>
+    <p style="margin:0;color:#666;">${f.desc||''}</p>
+  </div>`).join('');
+      return `<section ${sel} style="background:${p.bgColor||'#fff'};padding:${p.padding||'60px 20px'};">
+  <h2 style="text-align:center;margin:0 0 40px;font-size:2em;">${p.title||'Features'}</h2>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;max-width:1100px;margin:0 auto;">${feats}</div>
+</section>`;
+    }
+    case 'cta': {
+      return `<section ${sel} style="background:${p.bgColor||'#7c6af7'};color:${p.textColor||'#fff'};padding:${p.padding||'80px 20px'};text-align:center;">
+  <h2 style="font-size:2.2em;margin:0 0 12px;">${p.heading||'Ready to get started?'}</h2>
+  <p style="font-size:1.1em;margin:0 0 32px;opacity:0.85;">${p.subheading||''}</p>
+  <a href="${p.buttonHref||'#'}" style="background:${p.btnBg||'#fff'};color:${p.btnColor||'#7c6af7'};padding:14px 36px;border-radius:6px;font-weight:600;font-size:16px;text-decoration:none;display:inline-block;">${p.buttonText||'Get Started'}</a>
+</section>`;
+    }
+    case 'footer': {
+      return `<footer ${sel} style="background:${p.bgColor||'#1a1a1a'};color:${p.textColor||'#aaa'};padding:40px 24px 24px;">
+  <div style="max-width:1100px;margin:0 auto;">
+    <div style="font-weight:700;font-size:18px;color:${p.linkColor||'#ccc'};margin-bottom:8px;">${p.brand||'My Site'}</div>
+    <p style="margin:0 0 24px;">${p.tagline||''}</p>
+    <div style="border-top:1px solid rgba(255,255,255,0.1);padding-top:16px;font-size:13px;">${p.copyright||'© 2025 My Site'}</div>
+  </div>
+</footer>`;
+    }
+    case 'form': {
+      return `<section ${sel} style="background:${p.bgColor||'#f8f8f8'};padding:${p.padding||'60px 20px'};">
+  <div style="max-width:600px;margin:0 auto;">
+    <h2 style="text-align:center;margin:0 0 32px;font-size:2em;">${p.title||'Contact Us'}</h2>
+    <form action="${p.action||'#'}" style="display:flex;flex-direction:column;gap:16px;">
+      <div><label style="display:block;margin-bottom:4px;font-weight:500;">Name</label><input type="text" placeholder="Your name" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:14px;"></div>
+      <div><label style="display:block;margin-bottom:4px;font-weight:500;">Email</label><input type="email" placeholder="your@email.com" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:14px;"></div>
+      <div><label style="display:block;margin-bottom:4px;font-weight:500;">Message</label><textarea placeholder="Your message..." rows="5" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:14px;resize:vertical;"></textarea></div>
+      <button type="submit" style="background:#7c6af7;color:#fff;padding:12px;border-radius:6px;font-weight:600;font-size:15px;border:none;cursor:pointer;">${p.submitText||'Send Message'}</button>
+    </form>
+  </div>
+</section>`;
+    }
+    case 'html': {
+      return `<div ${sel}>${p.code||''}</div>`;
+    }
+    default:
+      return `<div ${sel} style="padding:16px;background:#f0f0f0;color:#666;">[Unknown block: ${block.type}]</div>`;
+  }
+}
+
+// ============================================================
+// PROJECT COMPILATION
+// ============================================================
+function escAttr(s) { return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;'); }
+
+function buildMetaTags(projectData, page) {
+  const sm = projectData.meta || {};
+  const pm = page.meta || {};
+  const tags = [];
+  const desc = pm.description || sm.description;
+  if (desc) tags.push(`<meta name="description" content="${escAttr(desc)}">`);
+  if (sm.keywords) tags.push(`<meta name="keywords" content="${escAttr(sm.keywords)}">`);
+  if (sm.author) tags.push(`<meta name="author" content="${escAttr(sm.author)}">`);
+  if (sm.favicon) tags.push(`<link rel="icon" href="${escAttr(sm.favicon)}">`);
+  const ogTitle = pm.ogTitle || pm.titleOverride || (page.name + (projectData.name ? ' \u2014 ' + projectData.name : ''));
+  const ogDesc = pm.ogDescription || desc;
+  const ogImg = pm.ogImage || sm.ogImage;
+  tags.push(`<meta property="og:type" content="${escAttr(sm.ogType||'website')}">`);
+  tags.push(`<meta property="og:title" content="${escAttr(ogTitle)}">`);
+  if (ogDesc) tags.push(`<meta property="og:description" content="${escAttr(ogDesc)}">`);
+  if (ogImg) tags.push(`<meta property="og:image" content="${escAttr(ogImg)}">`);
+  tags.push(`<meta name="twitter:card" content="${escAttr(sm.twitterCard||'summary_large_image')}">`);
+  return tags.join('\n');
+}
+
+function resolveImageSrcs(html, imageMap) {
+  if (!imageMap || !Object.keys(imageMap).length) return html;
+  return html.replace(/src="(data:image\/[^"]{1,2000000})"/g, (match, dataUrl) => {
+    return imageMap[dataUrl] ? `src="images/${escAttr(imageMap[dataUrl])}"` : match;
+  });
+}
+
+function compilePageHTML(projectData, pageIndex, minimal = false, imageMap = null) {
+  const page = projectData.pages[pageIndex];
+  let blocksHTML = (page.blocks||[]).map(b => renderBlock(b, false)).join('\n');
+  if (imageMap) blocksHTML = resolveImageSrcs(blocksHTML, imageMap);
+  const titleOverride = (page.meta||{}).titleOverride;
+  const title = titleOverride || (page.name + (projectData.name ? ' \u2014 ' + projectData.name : ''));
+  const metaTags = buildMetaTags(projectData, page);
+
+  if (minimal) {
+    return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>${title}</title>
+${metaTags}
+<style>${projectData.globalCSS||''}</style>
+</head>
+<body>
+${blocksHTML}
+<script>${projectData.globalJS||''}<\/script>
+</body>
+</html>`;
+  }
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>${title}</title>
+${metaTags}
+<style>
+${projectData.globalCSS||''}
+</style>
+</head>
+<body>
+${blocksHTML}
+<script>
+${projectData.globalJS||''}
+<\/script>
+</body>
+</html>`;
+}
+
+// ============================================================
+// VIEW NAVIGATION
+// ============================================================
+function showView(v) {
+  document.querySelectorAll('#view-dashboard,#view-editor,#view-settings').forEach(el=>el.classList.remove('active'));
+  document.getElementById('view-'+v).classList.add('active');
+}
+function showDashboard() {
+  renderDashboard();
+  showView('dashboard');
+}
+function showSettings() {
+  loadSettingsForm();
+  updateStorageInfo();
+  showView('settings');
+}
+function exitEditor() {
+  saveProject();
+  showDashboard();
+}
+
+// ============================================================
+// DASHBOARD
+// ============================================================
+function renderDashboard() {
+  loadProjects();
+  const grid = document.getElementById('projects-grid');
+  grid.innerHTML = '';
+
+  // New project card
+  const newCard = document.createElement('button');
+  newCard.className = 'new-project-card';
+  newCard.innerHTML = '<span class="new-project-icon">＋</span><span>Create New Website</span>';
+  newCard.onclick = openNewProjectModal;
+  grid.appendChild(newCard);
+
+  STATE.projects.slice().reverse().forEach(p => {
+    const card = document.createElement('div');
+    card.className = 'project-card';
+    const modified = new Date(p.modified).toLocaleDateString();
+
+    // Thumbnail preview
+    const pd = getProjectData(p.id);
+    const thumbHTML = compilePageHTML(pd, 0, true);
+    const thumbEncoded = `data:text/html;charset=utf-8,${encodeURIComponent(thumbHTML)}`;
+
+    card.innerHTML = `
+      <div class="project-thumb">
+        <iframe src="${thumbEncoded}" scrolling="no" style="width:200%;height:200%;transform:scale(0.5);transform-origin:top left;pointer-events:none;border:none;"></iframe>
+      </div>
+      <div class="project-info">
+        <div class="project-name">${p.name}</div>
+        <div class="project-meta">${pd.pages.length} page${pd.pages.length!==1?'s':''} · Modified ${modified}</div>
+      </div>
+      <div class="project-actions">
+        <button class="btn btn-primary btn-sm" onclick="event.stopPropagation();openEditor('${p.id}')">✏ Edit</button>
+        <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();openRenameModal('${p.id}')">Rename</button>
+        <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();duplicateProject('${p.id}')">Copy</button>
+        <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation();downloadProjectZip('${p.id}')">⬇</button>
+        <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();openDeleteModal('${p.id}')">✕</button>
+      </div>`;
+    card.ondblclick = () => openEditor(p.id);
+    grid.appendChild(card);
+  });
+}
+
+// ============================================================
+// PROJECT CRUD
+// ============================================================
+function openNewProjectModal() {
+  document.getElementById('new-project-name').value = '';
+  document.getElementById('new-project-template').value = 'blank';
+  openModal('modal-new-project');
+  setTimeout(()=>document.getElementById('new-project-name').focus(),100);
+}
+
+function createProject() {
+  const name = document.getElementById('new-project-name').value.trim() || 'Untitled Site';
+  const template = document.getElementById('new-project-template').value;
+  const id = uid();
+  let data = createBlankProjectData(name);
+  data = applyTemplate(data, template);
+
+  const meta = { id, name, created: Date.now(), modified: Date.now() };
+  STATE.projects.push(meta);
+  saveProjectsMeta();
+  saveProjectData(id, data);
+
+  closeModal('modal-new-project');
+  toast('Website created!', 'success');
+  openEditor(id);
+}
+
+let _renameId = null;
+function openRenameModal(id) {
+  _renameId = id;
+  const p = STATE.projects.find(p=>p.id===id);
+  document.getElementById('rename-input').value = p ? p.name : '';
+  openModal('modal-rename');
+  setTimeout(()=>document.getElementById('rename-input').select(),100);
+}
+function confirmRename() {
+  const name = document.getElementById('rename-input').value.trim();
+  if (!name) return;
+  const p = STATE.projects.find(p=>p.id===_renameId);
+  if (p) {
+    p.name = name;
+    p.modified = Date.now();
+    saveProjectsMeta();
+    const data = getProjectData(_renameId);
+    data.name = name;
+    saveProjectData(_renameId, data);
+  }
+  closeModal('modal-rename');
+  renderDashboard();
+  toast('Renamed!', 'success');
+}
+
+let _deleteId = null;
+function openDeleteModal(id) {
+  _deleteId = id;
+  const p = STATE.projects.find(p=>p.id===id);
+  document.getElementById('delete-project-name').textContent = p ? p.name : 'this website';
+  openModal('modal-delete');
+}
+function confirmDelete() {
+  STATE.projects = STATE.projects.filter(p=>p.id!==_deleteId);
+  saveProjectsMeta();
+  LS.del('proj_'+_deleteId);
+  closeModal('modal-delete');
+  renderDashboard();
+  toast('Deleted', 'info');
+}
+
+function duplicateProject(id) {
+  const src = getProjectData(id);
+  const srcMeta = STATE.projects.find(p=>p.id===id);
+  const newId = uid();
+  const newData = JSON.parse(JSON.stringify(src));
+  newData.name = (srcMeta ? srcMeta.name : 'Copy') + ' (copy)';
+  const meta = { id: newId, name: newData.name, created: Date.now(), modified: Date.now() };
+  STATE.projects.push(meta);
+  saveProjectsMeta();
+  saveProjectData(newId, newData);
+  renderDashboard();
+  toast('Duplicated!', 'success');
+}
+
+// ============================================================
+// EDITOR
+// ============================================================
+let _projectData = null;
+
+function openEditor(id) {
+  STATE.currentProjectId = id;
+  STATE.currentPageIndex = 0;
+  STATE.selectedBlockId = null;
+  _projectData = getProjectData(id);
+
+  document.getElementById('editor-project-name').textContent = _projectData.name;
+
+  // Start in visual mode
+  switchEditorMode('visual');
+  renderPagesList();
+  renderCanvas();
+  renderProps();
+  showView('editor');
+}
+
+function saveProject() {
+  if (!STATE.currentProjectId) return;
+  if (STATE.currentMode === 'code') applyCode();
+  saveProjectData(STATE.currentProjectId, _projectData);
+  const p = STATE.projects.find(p=>p.id===STATE.currentProjectId);
+  if (p) {
+    p.modified = Date.now();
+    p.name = _projectData.name;
+    saveProjectsMeta();
+  }
+  toast('Saved!', 'success');
+}
+
+// ============================================================
+// PAGES
+// ============================================================
+function renderPagesList() {
+  const list = document.getElementById('pages-list');
+  list.innerHTML = '';
+  (_projectData.pages||[]).forEach((page, i) => {
+    const item = document.createElement('div');
+    item.className = 'page-item' + (i === STATE.currentPageIndex ? ' active' : '');
+    item.innerHTML = `<span style="font-size:14px;">📄</span><span class="page-item-name">${page.name}</span>`;
+    item.onclick = () => switchPage(i);
+    if (i > 0) {
+      const del = document.createElement('button');
+      del.className = 'btn-icon';
+      del.innerHTML = '×';
+      del.title = 'Delete page';
+      del.onclick = (e) => { e.stopPropagation(); deletePage(i); };
+      item.appendChild(del);
+    }
+    list.appendChild(item);
+  });
+  document.getElementById('page-url-display').textContent = _projectData.pages[STATE.currentPageIndex]?.slug + '.html';
+}
+
+function switchPage(i) {
+  if (STATE.currentMode === 'code') applyCode();
+  STATE.currentPageIndex = i;
+  STATE.selectedBlockId = null;
+  renderPagesList();
+  renderCanvas();
+  if (STATE.currentMode === 'code') refreshCodeEditor();
+}
+
+function addPage() {
+  document.getElementById('new-page-name').value = '';
+  openModal('modal-add-page');
+  setTimeout(()=>document.getElementById('new-page-name').focus(),100);
+}
+
+function confirmAddPage() {
+  const name = document.getElementById('new-page-name').value.trim() || 'Page';
+  const slug = name.toLowerCase().replace(/[^a-z0-9]/g,'-').replace(/-+/g,'-');
+  _projectData.pages.push({ id: uid(), name, slug, blocks: [] });
+  STATE.currentPageIndex = _projectData.pages.length - 1;
+  closeModal('modal-add-page');
+  renderPagesList();
+  renderCanvas();
+}
+
+function deletePage(i) {
+  if (_projectData.pages.length <= 1) { toast('Cannot delete the only page', 'error'); return; }
+  _projectData.pages.splice(i, 1);
+  if (STATE.currentPageIndex >= _projectData.pages.length) STATE.currentPageIndex = _projectData.pages.length - 1;
+  renderPagesList();
+  renderCanvas();
+}
+
+// ============================================================
+// CANVAS
+// ============================================================
+function getCanvasHTML() {
+  const page = _projectData.pages[STATE.currentPageIndex];
+  const blocksHTML = (page.blocks||[]).map(b => {
+    const html = renderBlock(b, true);
+    return `<div data-block-id="${b.id}" class="block-wrapper" style="position:relative;cursor:pointer;" onclick="event.stopPropagation();window.parent.selectBlock('${b.id}')">${html}<div class="block-controls"><button class="block-ctrl-btn" onclick="event.stopPropagation();window.parent.moveBlock('${b.id}',-1)" title="Move up">↑</button><button class="block-ctrl-btn" onclick="event.stopPropagation();window.parent.moveBlock('${b.id}',1)" title="Move down">↓</button><button class="block-ctrl-btn" style="background:#e74c3c;" onclick="event.stopPropagation();window.parent.removeBlock('${b.id}')" title="Delete">✕</button></div></div>`;
+  }).join('');
+
+  return `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+* { box-sizing: border-box; }
+body { margin: 0; font-family: 'Segoe UI', system-ui, sans-serif; cursor: default; }
+.block-wrapper { position: relative; }
+.block-wrapper:hover { outline: 2px dashed #7c6af7; outline-offset: -2px; }
+.block-wrapper.selected { outline: 2px solid #7c6af7 !important; outline-offset: -2px; }
+.block-controls { position: absolute; top: 4px; right: 4px; display: none; gap: 4px; z-index: 999; }
+.block-wrapper:hover .block-controls { display: flex; }
+.block-ctrl-btn { width: 26px; height: 26px; border-radius: 4px; background: #7c6af7; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 13px; cursor: pointer; border: none; }
+${_projectData.globalCSS||''}
+</style>
+</head>
+<body onclick="window.parent.deselectBlock(event)">
+${blocksHTML}
+<script>
+${_projectData.globalJS||''}
+<\/script>
+</body>
+</html>`;
+}
+
+function renderCanvas() {
+  const iframe = document.getElementById('canvas-iframe');
+  const html = getCanvasHTML();
+  iframe.srcdoc = html;
+
+  // Restore selected state after load
+  iframe.onload = () => {
+    if (STATE.selectedBlockId) {
+      try {
+        const doc = iframe.contentDocument;
+        doc.querySelectorAll('.block-wrapper').forEach(el => el.classList.remove('selected'));
+        const sel = doc.querySelector(`[data-block-id="${STATE.selectedBlockId}"]`);
+        if (sel) sel.classList.add('selected');
+      } catch(e) {}
+    }
+    iframe.style.height = (iframe.contentDocument?.body?.scrollHeight || 600) + 'px';
+  };
+}
+
+// Called from iframe
+window.deselectBlock = function(e) {
+  STATE.selectedBlockId = null;
+  try {
+    const doc = document.getElementById('canvas-iframe').contentDocument;
+    doc.querySelectorAll('.block-wrapper').forEach(el => el.classList.remove('selected'));
+  } catch(e) {}
+  renderProps();
+};
+
+window.selectBlock = function(id) {
+  STATE.selectedBlockId = id;
+  // Highlight in iframe
+  try {
+    const iframe = document.getElementById('canvas-iframe');
+    const doc = iframe.contentDocument;
+    doc.querySelectorAll('.block-wrapper').forEach(el => el.classList.remove('selected'));
+    const sel = doc.querySelector(`[data-block-id="${id}"]`);
+    if (sel) sel.classList.add('selected');
+  } catch(e) {}
+  renderProps();
+};
+
+window.moveBlock = function(id, dir) {
+  const page = _projectData.pages[STATE.currentPageIndex];
+  const idx = page.blocks.findIndex(b=>b.id===id);
+  if (idx < 0) return;
+  const newIdx = idx + dir;
+  if (newIdx < 0 || newIdx >= page.blocks.length) return;
+  const tmp = page.blocks[idx];
+  page.blocks[idx] = page.blocks[newIdx];
+  page.blocks[newIdx] = tmp;
+  renderCanvas();
+};
+
+window.removeBlock = function(id) {
+  const page = _projectData.pages[STATE.currentPageIndex];
+  page.blocks = page.blocks.filter(b=>b.id!==id);
+  if (STATE.selectedBlockId === id) STATE.selectedBlockId = null;
+  renderCanvas();
+  renderProps();
+};
+
+function addBlock(type) {
+  const block = mkBlock(type);
+  const page = _projectData.pages[STATE.currentPageIndex];
+  page.blocks.push(block);
+  STATE.selectedBlockId = block.id;
+  renderCanvas();
+  renderProps();
+}
+
+// ============================================================
+// PROPERTIES PANEL
+// ============================================================
+function renderProps() {
+  const panel = document.getElementById('props-panel');
+  if (!STATE.selectedBlockId) {
+    panel.innerHTML = buildSitePropsHTML();
+    return;
+  }
+  const page = _projectData.pages[STATE.currentPageIndex];
+  const block = page.blocks.find(b=>b.id===STATE.selectedBlockId);
+  if (!block) { panel.innerHTML = '<div class="text-muted text-sm">Block not found.</div>'; return; }
+
+  panel.innerHTML = buildPropsForm(block);
+}
+
+function switchPropsTab(tab) {
+  STATE.propsTab = tab;
+  renderProps();
+}
+
+function buildSitePropsHTML() {
+  const tab = STATE.propsTab || 'page';
+  const page = _projectData.pages[STATE.currentPageIndex];
+  const pm = page.meta || {};
+  const sm = _projectData.meta || {};
+
+  let html = `<div class="props-tabs">
+    <button class="props-tab-btn ${tab==='page'?'active':''}" onclick="switchPropsTab('page')">Page</button>
+    <button class="props-tab-btn ${tab==='site'?'active':''}" onclick="switchPropsTab('site')">Site</button>
+  </div>`;
+
+  if (tab === 'page') {
+    html += `<div class="props-section">
+      <div class="props-section-title">Page Meta</div>
+      <div class="field"><label class="label">Title Override</label><input class="input" type="text" value="${(pm.titleOverride||'').replace(/"/g,'&quot;')}" placeholder="Leave blank to use page name" oninput="updatePageMeta('titleOverride',this.value)"></div>
+      <div class="field"><label class="label">Description</label><textarea class="input" rows="3" oninput="updatePageMeta('description',this.value)">${pm.description||''}</textarea></div>
+      <div class="field"><label class="label">OG Title</label><input class="input" type="text" value="${(pm.ogTitle||'').replace(/"/g,'&quot;')}" placeholder="Defaults to page title" oninput="updatePageMeta('ogTitle',this.value)"></div>
+      <div class="field"><label class="label">OG Description</label><textarea class="input" rows="2" oninput="updatePageMeta('ogDescription',this.value)">${pm.ogDescription||''}</textarea></div>
+      <div class="field"><label class="label">OG Image URL</label><input class="input" type="text" value="${(pm.ogImage||'').replace(/"/g,'&quot;')}" placeholder="https://… or leave blank for site default" oninput="updatePageMeta('ogImage',this.value)"></div>
+    </div>`;
+  } else {
+    html += `<div class="props-section">
+      <div class="props-section-title">Site Meta Defaults</div>
+      <div class="field"><label class="label">Description</label><textarea class="input" rows="3" oninput="updateSiteMeta('description',this.value)">${sm.description||''}</textarea></div>
+      <div class="field"><label class="label">Keywords</label><input class="input" type="text" value="${(sm.keywords||'').replace(/"/g,'&quot;')}" placeholder="keyword1, keyword2" oninput="updateSiteMeta('keywords',this.value)"></div>
+      <div class="field"><label class="label">Author</label><input class="input" type="text" value="${(sm.author||'').replace(/"/g,'&quot;')}" oninput="updateSiteMeta('author',this.value)"></div>
+      <div class="field"><label class="label">Favicon URL</label><input class="input" type="text" value="${(sm.favicon||'').replace(/"/g,'&quot;')}" placeholder="favicon.ico" oninput="updateSiteMeta('favicon',this.value)"></div>
+      <div class="field"><label class="label">Default OG Image</label><input class="input" type="text" value="${(sm.ogImage||'').replace(/"/g,'&quot;')}" placeholder="https://…" oninput="updateSiteMeta('ogImage',this.value)"></div>
+      <div class="field"><label class="label">Twitter Card</label>
+        <select class="input" onchange="updateSiteMeta('twitterCard',this.value)">
+          ${['summary','summary_large_image','app','player'].map(v=>`<option value="${v}" ${(sm.twitterCard||'summary_large_image')===v?'selected':''}>${v}</option>`).join('')}
+        </select>
+      </div>
+    </div>
+    <div class="props-section">
+      <div class="props-section-title">Global CSS</div>
+      <textarea class="input" rows="8" style="font-family:monospace;font-size:11px;" oninput="updateGlobalCSS(this.value)">${(_projectData.globalCSS||'').replace(/</g,'&lt;')}</textarea>
+    </div>
+    <div class="props-section">
+      <div class="props-section-title">Global JS</div>
+      <textarea class="input" rows="6" style="font-family:monospace;font-size:11px;" oninput="updateGlobalJS(this.value)">${(_projectData.globalJS||'').replace(/</g,'&lt;')}</textarea>
+    </div>`;
+  }
+
+  return html;
+}
+
+function updatePageMeta(key, value) {
+  const page = _projectData.pages[STATE.currentPageIndex];
+  if (!page.meta) page.meta = {};
+  page.meta[key] = value;
+}
+
+function updateSiteMeta(key, value) {
+  if (!_projectData.meta) _projectData.meta = {};
+  _projectData.meta[key] = value;
+}
+
+function buildPropsForm(block) {
+  const p = block.props;
+  const type = block.type;
+
+  let html = `<div style="margin:-12px -12px 12px;padding:8px 12px;border-bottom:1px solid var(--border);">
+    <button class="btn btn-ghost btn-sm" style="font-size:11px;padding:3px 8px;" onclick="deselectBlock()">← Page / Site</button>
+  </div>
+  <div class="props-section"><div class="props-section-title">${type.charAt(0).toUpperCase()+type.slice(1)}</div>`;
+
+  const field = (label, key, inputType = 'text', extra = '') => {
+    if (inputType === 'color') {
+      return `<div class="field">
+        <label class="label">${label}</label>
+        <div class="color-input-wrap">
+          <div class="color-swatch" style="background:${p[key]||'#ffffff'}" onclick="document.getElementById('cp_${key}_${block.id}').click()"></div>
+          <input type="color" id="cp_${key}_${block.id}" value="${p[key]||'#ffffff'}" style="opacity:0;position:absolute;pointer-events:none;" oninput="updateProp('${block.id}','${key}',this.value)">
+          <input class="input" type="text" value="${p[key]||''}" oninput="updateProp('${block.id}','${key}',this.value);document.querySelector('.color-swatch[onclick*=cp_${key}_${block.id}]').style.background=this.value" style="flex:1;">
+        </div>
+      </div>`;
+    }
+    if (inputType === 'textarea') {
+      return `<div class="field"><label class="label">${label}</label><textarea class="input" rows="4" oninput="updateProp('${block.id}','${key}',this.value)" ${extra}>${p[key]||''}</textarea></div>`;
+    }
+    if (inputType === 'select') {
+      return `<div class="field"><label class="label">${label}</label><select class="input" onchange="updateProp('${block.id}','${key}',this.value)" ${extra}>${extra}</select></div>`;
+    }
+    return `<div class="field"><label class="label">${label}</label><input class="input" type="${inputType}" value="${p[key]||''}" oninput="updateProp('${block.id}','${key}',this.value)"></div>`;
+  };
+
+  switch(type) {
+    case 'nav':
+      html += field('Brand Name', 'brand');
+      html += field('Links (comma separated)', 'links');
+      html += field('Background', 'bgColor', 'color');
+      html += field('Text Color', 'textColor', 'color');
+      html += field('Link Color', 'linkColor', 'color');
+      break;
+    case 'hero':
+      html += field('Heading', 'heading');
+      html += field('Subheading', 'subheading');
+      html += field('Button Text', 'buttonText');
+      html += field('Button Link', 'buttonHref');
+      html += field('Background Color', 'bgColor', 'color');
+      html += field('Text Color', 'textColor', 'color');
+      html += field('Button Background', 'btnBg', 'color');
+      html += field('Button Text Color', 'btnColor', 'color');
+      break;
+    case 'heading':
+      html += field('Text', 'text');
+      html += `<div class="field"><label class="label">Level</label><select class="input" onchange="updateProp('${block.id}','level',this.value)">
+        ${['h1','h2','h3','h4'].map(v=>`<option value="${v}" ${p.level===v?'selected':''}>${v.toUpperCase()}</option>`).join('')}
+      </select></div>`;
+      html += `<div class="field"><label class="label">Align</label><select class="input" onchange="updateProp('${block.id}','align',this.value)">
+        ${['left','center','right'].map(v=>`<option value="${v}" ${p.align===v?'selected':''}>${v}</option>`).join('')}
+      </select></div>`;
+      html += field('Color', 'color', 'color');
+      break;
+    case 'text':
+      html += `<div class="field"><label class="label">Content (HTML)</label><textarea class="input" rows="6" oninput="updateProp('${block.id}','content',this.value)">${(p.content||'').replace(/</g,'&lt;')}</textarea></div>`;
+      html += `<div class="field"><label class="label">Align</label><select class="input" onchange="updateProp('${block.id}','align',this.value)">
+        ${['left','center','right'].map(v=>`<option value="${v}" ${p.align===v?'selected':''}>${v}</option>`).join('')}
+      </select></div>`;
+      html += field('Color', 'color', 'color');
+      break;
+    case 'image':
+      html += field('Image URL', 'src');
+      html += `<div class="field"><button class="btn btn-secondary btn-sm" style="width:100%;" onclick="openImageLibrary('${block.id}')">🖼 Browse Image Library</button></div>`;
+      html += field('Alt Text', 'alt');
+      html += field('Width', 'width');
+      html += field('Caption', 'caption');
+      html += `<div class="field"><label class="label">Align</label><select class="input" onchange="updateProp('${block.id}','align',this.value)">
+        ${['left','center','right'].map(v=>`<option value="${v}" ${p.align===v?'selected':''}>${v}</option>`).join('')}
+      </select></div>`;
+      html += `<div class="field"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;" class="label"><input type="checkbox" ${p.rounded?'checked':''} onchange="updateProp('${block.id}','rounded',this.checked)"> Rounded corners</label></div>`;
+      break;
+    case 'button':
+      html += field('Button Text', 'text');
+      html += field('Link (href)', 'href');
+      html += field('Background', 'bgColor', 'color');
+      html += field('Text Color', 'textColor', 'color');
+      html += `<div class="field"><label class="label">Size</label><select class="input" onchange="updateProp('${block.id}','size',this.value)">
+        ${['small','medium','large'].map(v=>`<option value="${v}" ${p.size===v?'selected':''}>${v}</option>`).join('')}
+      </select></div>`;
+      html += `<div class="field"><label class="label">Align</label><select class="input" onchange="updateProp('${block.id}','align',this.value)">
+        ${['left','center','right'].map(v=>`<option value="${v}" ${p.align===v?'selected':''}>${v}</option>`).join('')}
+      </select></div>`;
+      break;
+    case 'section':
+      html += field('Background Color', 'bgColor', 'color');
+      html += field('Padding', 'padding');
+      html += field('Max Width', 'maxWidth');
+      break;
+    case 'columns2':
+    case 'columns3':
+      html += field('Background Color', 'bgColor', 'color');
+      html += field('Padding', 'padding');
+      html += field('Gap', 'gap');
+      html += `<div class="field"><label class="label">Column 1 HTML</label><textarea class="input" rows="3" oninput="updateProp('${block.id}','col1',this.value)">${(p.col1||'').replace(/</g,'&lt;')}</textarea></div>`;
+      html += `<div class="field"><label class="label">Column 2 HTML</label><textarea class="input" rows="3" oninput="updateProp('${block.id}','col2',this.value)">${(p.col2||'').replace(/</g,'&lt;')}</textarea></div>`;
+      if (type === 'columns3') html += `<div class="field"><label class="label">Column 3 HTML</label><textarea class="input" rows="3" oninput="updateProp('${block.id}','col3',this.value)">${(p.col3||'').replace(/</g,'&lt;')}</textarea></div>`;
+      break;
+    case 'divider':
+      html += field('Color', 'color', 'color');
+      html += field('Thickness (e.g. 1px)', 'thickness');
+      html += field('Margin (e.g. 20px 0)', 'margin');
+      break;
+    case 'spacer':
+      html += field('Height (e.g. 40px)', 'height');
+      break;
+    case 'cta':
+      html += field('Heading', 'heading');
+      html += field('Subheading', 'subheading');
+      html += field('Button Text', 'buttonText');
+      html += field('Button Link', 'buttonHref');
+      html += field('Background Color', 'bgColor', 'color');
+      html += field('Text Color', 'textColor', 'color');
+      html += field('Button Background', 'btnBg', 'color');
+      html += field('Button Text Color', 'btnColor', 'color');
+      break;
+    case 'footer':
+      html += field('Brand Name', 'brand');
+      html += field('Tagline', 'tagline');
+      html += field('Copyright', 'copyright');
+      html += field('Background Color', 'bgColor', 'color');
+      html += field('Text Color', 'textColor', 'color');
+      html += field('Link Color', 'linkColor', 'color');
+      break;
+    case 'form':
+      html += field('Title', 'title');
+      html += field('Submit Button Text', 'submitText');
+      html += field('Form Action URL', 'action');
+      html += field('Background Color', 'bgColor', 'color');
+      break;
+    case 'html':
+      html += `<div class="field"><label class="label">HTML Code</label><textarea class="input" rows="10" style="font-family:monospace;font-size:12px;" oninput="updateProp('${block.id}','code',this.value)">${(p.code||'').replace(/</g,'&lt;')}</textarea></div>`;
+      break;
+    case 'cards':
+      html += field('Section Title', 'title');
+      html += field('Background Color', 'bgColor', 'color');
+      html += field('Padding', 'padding');
+      html += `<div class="field"><label class="label">Cards (JSON)</label><textarea class="input" rows="8" style="font-family:monospace;font-size:11px;" oninput="updateCardsJSON('${block.id}','cards',this.value)">${JSON.stringify(p.cards||[], null, 2)}</textarea></div>`;
+      break;
+    case 'features':
+      html += field('Section Title', 'title');
+      html += field('Background Color', 'bgColor', 'color');
+      html += `<div class="field"><label class="label">Features (JSON)</label><textarea class="input" rows="8" style="font-family:monospace;font-size:11px;" oninput="updateCardsJSON('${block.id}','features',this.value)">${JSON.stringify(p.features||[], null, 2)}</textarea></div>`;
+      break;
+    default:
+      html += '<div class="text-muted text-sm">No properties available.</div>';
+  }
+
+  html += '</div>';
+
+  // Global CSS + JS at the bottom
+  html += `<div class="props-section" style="margin-top:16px;">
+    <div class="props-section-title" style="margin-bottom:8px;">Global CSS</div>
+    <textarea class="input" rows="5" style="font-family:monospace;font-size:11px;" oninput="updateGlobalCSS(this.value)">${(_projectData.globalCSS||'').replace(/</g,'&lt;')}</textarea>
+  </div>
+  <div class="props-section">
+    <div class="props-section-title" style="margin-bottom:8px;">Global JS</div>
+    <textarea class="input" rows="4" style="font-family:monospace;font-size:11px;" oninput="updateGlobalJS(this.value)">${(_projectData.globalJS||'').replace(/</g,'&lt;')}</textarea>
+  </div>`;
+
+  html += `<div style="margin-top:8px;">
+    <button class="btn btn-danger btn-sm" onclick="window.removeBlock('${block.id}')">🗑 Delete Block</button>
+  </div>`;
+
+  return html;
+}
+
+function updateProp(blockId, key, value) {
+  const page = _projectData.pages[STATE.currentPageIndex];
+  const block = page.blocks.find(b=>b.id===blockId);
+  if (!block) return;
+  block.props[key] = value;
+  renderCanvas();
+}
+
+function updateCardsJSON(blockId, key, value) {
+  try {
+    const parsed = JSON.parse(value);
+    const page = _projectData.pages[STATE.currentPageIndex];
+    const block = page.blocks.find(b=>b.id===blockId);
+    if (!block) return;
+    block.props[key] = parsed;
+    renderCanvas();
+  } catch(e) { /* invalid JSON, ignore */ }
+}
+
+function updateGlobalCSS(value) {
+  _projectData.globalCSS = value;
+  renderCanvas();
+}
+
+function updateGlobalJS(value) {
+  _projectData.globalJS = value;
+}
+
+// ============================================================
+// IMAGE LIBRARY
+// ============================================================
+function openImageLibrary(blockId) {
+  STATE.imgLibTargetBlockId = blockId;
+  STATE.imgLibSelectedId = null;
+  renderImageLibraryGrid();
+  const useBtn = document.getElementById('btn-img-lib-use');
+  useBtn.style.display = blockId ? 'inline-flex' : 'none';
+  openModal('modal-img-lib');
+}
+
+function renderImageLibraryGrid() {
+  const images = _projectData.images || [];
+  const grid = document.getElementById('img-lib-grid');
+  const empty = document.getElementById('img-lib-empty');
+  if (images.length === 0) {
+    grid.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+  grid.innerHTML = images.map(img => `
+    <div class="img-lib-item${STATE.imgLibSelectedId === img.id ? ' selected' : ''}" onclick="selectLibraryItem('${img.id}')">
+      <button class="img-lib-del" onclick="event.stopPropagation();deleteLibraryImage('${img.id}')" title="Delete">×</button>
+      <img src="${img.dataURL}" alt="${img.name}" loading="lazy">
+      <div class="img-lib-name" title="${img.name}">${img.name}</div>
+    </div>`).join('');
+}
+
+function selectLibraryItem(id) {
+  STATE.imgLibSelectedId = id;
+  renderImageLibraryGrid();
+}
+
+function useSelectedLibraryImage() {
+  if (!STATE.imgLibSelectedId || !STATE.imgLibTargetBlockId) return;
+  const img = (_projectData.images||[]).find(i => i.id === STATE.imgLibSelectedId);
+  if (!img) return;
+  updateProp(STATE.imgLibTargetBlockId, 'src', img.dataURL);
+  closeModal('modal-img-lib');
+  renderProps();
+}
+
+function deleteLibraryImage(id) {
+  _projectData.images = (_projectData.images||[]).filter(i => i.id !== id);
+  if (STATE.imgLibSelectedId === id) STATE.imgLibSelectedId = null;
+  renderImageLibraryGrid();
+}
+
+function uploadImages(input) {
+  const files = Array.from(input.files);
+  if (!files.length) return;
+  if (!_projectData.images) _projectData.images = [];
+  let done = 0;
+  files.forEach(file => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      _projectData.images.push({ id: uid(), name: file.name, dataURL: e.target.result, type: file.type });
+      done++;
+      if (done === files.length) {
+        renderImageLibraryGrid();
+        toast(`${files.length} image${files.length > 1 ? 's' : ''} uploaded`, 'success');
+      }
+    };
+    reader.readAsDataURL(file);
+  });
+  input.value = '';
+}
+
+function openImportUrlModal() {
+  document.getElementById('import-url-input').value = '';
+  document.getElementById('import-url-name').value = '';
+  document.getElementById('import-url-status').style.display = 'none';
+  document.getElementById('btn-import-url-go').disabled = false;
+  closeModal('modal-img-lib');
+  openModal('modal-import-url');
+}
+
+function cancelImportUrl() {
+  closeModal('modal-import-url');
+  openModal('modal-img-lib');
+}
+
+async function importImageFromUrl() {
+  const url = document.getElementById('import-url-input').value.trim();
+  if (!url) { toast('Enter a URL', 'error'); return; }
+  let name = document.getElementById('import-url-name').value.trim() || url.split('/').pop().split('?')[0] || 'image.jpg';
+  if (!/\.(jpg|jpeg|png|gif|webp|svg|ico|avif)$/i.test(name)) name += '.jpg';
+
+  const statusEl = document.getElementById('import-url-status');
+  const goBtn = document.getElementById('btn-import-url-go');
+  statusEl.style.display = 'block';
+  statusEl.textContent = 'Fetching image…';
+  goBtn.disabled = true;
+
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const blob = await res.blob();
+    if (!blob.type.startsWith('image/')) throw new Error('URL did not return an image');
+    const reader = new FileReader();
+    reader.onload = e => {
+      if (!_projectData.images) _projectData.images = [];
+      _projectData.images.push({ id: uid(), name, dataURL: e.target.result, type: blob.type });
+      closeModal('modal-import-url');
+      openModal('modal-img-lib');
+      renderImageLibraryGrid();
+      toast('Image imported!', 'success');
+    };
+    reader.readAsDataURL(blob);
+  } catch(e) {
+    statusEl.textContent = 'Failed: ' + e.message;
+    goBtn.disabled = false;
+  }
+}
+
+// ============================================================
+// DEVICE / MODE
+// ============================================================
+function setDevice(d) {
+  STATE.currentDevice = d;
+  document.querySelectorAll('.device-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.device === d);
+  });
+  const frame = document.getElementById('canvas-frame');
+  frame.className = 'canvas-frame' + (d !== 'desktop' ? ' device-'+d : '');
+}
+
+function switchEditorMode(mode) {
+  STATE.currentMode = mode;
+  document.querySelectorAll('.editor-mode-tab').forEach(t => t.classList.toggle('active', t.dataset.mode === mode));
+
+  if (mode === 'visual') {
+    document.getElementById('mode-visual').style.display = 'flex';
+    document.getElementById('mode-code').classList.add('hidden');
+    renderCanvas();
+  } else {
+    document.getElementById('mode-visual').style.display = 'none';
+    document.getElementById('mode-code').classList.remove('hidden');
+    refreshCodeEditor();
+  }
+}
+
+// ============================================================
+// CODE EDITOR
+// ============================================================
+function refreshCodeEditor() {
+  const tab = STATE.currentCodeTab;
+  const page = _projectData.pages[STATE.currentPageIndex];
+  const ta = document.getElementById('code-editor');
+
+  if (tab === 'html') {
+    ta.value = compilePageHTML(_projectData, STATE.currentPageIndex, false);
+  } else if (tab === 'css') {
+    ta.value = _projectData.globalCSS || '';
+  } else if (tab === 'js') {
+    ta.value = _projectData.globalJS || '';
+  }
+}
+
+function switchCodeTab(tab) {
+  STATE.currentCodeTab = tab;
+  document.querySelectorAll('.code-tab').forEach(t => t.classList.toggle('active', t.dataset.file === tab));
+  refreshCodeEditor();
+}
+
+function applyCode() {
+  const tab = STATE.currentCodeTab;
+  const val = document.getElementById('code-editor').value;
+
+  if (tab === 'css') {
+    _projectData.globalCSS = val;
+    toast('CSS applied', 'success');
+  } else if (tab === 'js') {
+    _projectData.globalJS = val;
+    toast('JS applied', 'success');
+  } else if (tab === 'html') {
+    // Parse and store raw HTML in a special page.rawHTML field
+    const page = _projectData.pages[STATE.currentPageIndex];
+    page.rawHTML = val;
+    page.blocks = [mkBlock('html', { code: extractBodyContent(val) })];
+    toast('HTML applied', 'success');
+  }
+}
+
+function extractBodyContent(html) {
+  const match = html.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+  return match ? match[1].trim() : html;
+}
+
+// ============================================================
+// PREVIEW
+// ============================================================
+function previewProject() {
+  const html = compilePageHTML(_projectData, STATE.currentPageIndex, false);
+  const blob = new Blob([html], {type: 'text/html'});
+  const url = URL.createObjectURL(blob);
+  window.open(url, '_blank');
+}
+
+// ============================================================
+// DOWNLOAD ZIP
+// ============================================================
+async function downloadZip() {
+  await downloadProjectZip(STATE.currentProjectId);
+}
+
+async function downloadProjectZip(id) {
+  const data = id === STATE.currentProjectId ? _projectData : getProjectData(id);
+  const meta = STATE.projects.find(p=>p.id===id);
+  const name = (meta?.name || 'website').toLowerCase().replace(/[^a-z0-9]/g,'-');
+
+  const zip = new JSZip();
+  const folder = zip.folder(name);
+
+  // Build image map: dataURL -> sanitized filename, and write images/ folder
+  const imageMap = {};
+  const libImages = data.images || [];
+  if (libImages.length > 0) {
+    const imgFolder = folder.folder('images');
+    const usedNames = new Set();
+    libImages.forEach(img => {
+      // Deduplicate filenames
+      let fname = img.name;
+      if (usedNames.has(fname)) {
+        const ext = fname.includes('.') ? '.' + fname.split('.').pop() : '';
+        fname = fname.replace(/(\.[^.]+)?$/, `_${img.id.slice(0,4)}${ext}`);
+      }
+      usedNames.add(fname);
+      imageMap[img.dataURL] = fname;
+      const b64 = img.dataURL.split(',')[1];
+      if (b64) imgFolder.file(fname, b64, { base64: true });
+    });
+  }
+
+  // Each page — resolve data URL image srcs to relative images/ paths
+  data.pages.forEach((page, i) => {
+    const html = compilePageHTML(data, i, false, imageMap);
+    const filename = (page.slug || (i===0?'index':'page'+i)) + '.html';
+    folder.file(filename, html);
+  });
+
+  // Standalone CSS + JS
+  folder.file('style.css', data.globalCSS || '');
+  folder.file('script.js', data.globalJS || '');
+
+  // README
+  folder.file('README.md', `# ${data.name}\n\nBuilt with Functional Websites builder.\n\nTo host on GitHub Pages:\n1. Create a new GitHub repository\n2. Upload these files\n3. Go to Settings → Pages → select the main branch\n`);
+
+  const blob = await zip.generateAsync({type: 'blob'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = name + '.zip';
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('Downloaded!', 'success');
+}
+
+// ============================================================
+// SETTINGS
+// ============================================================
+function loadSettingsForm() {
+  const gh = LS.get('github') || {};
+  const cf = LS.get('cloudflare') || {};
+  document.getElementById('gh-token').value = gh.token || '';
+  document.getElementById('gh-owner').value = gh.owner || '';
+  document.getElementById('cf-token').value = cf.token || '';
+  document.getElementById('cf-account-id').value = cf.accountId || '';
+  updateIntegrationBadges();
+}
+
+function updateIntegrationBadges() {
+  const gh = LS.get('github') || {};
+  const cf = LS.get('cloudflare') || {};
+  const ghBadge = document.getElementById('gh-status-badge');
+  const cfBadge = document.getElementById('cf-status-badge');
+  if (gh.verified) {
+    ghBadge.className = 'status-badge connected'; ghBadge.textContent = '● Connected';
+  } else {
+    ghBadge.className = 'status-badge disconnected'; ghBadge.textContent = '● Disconnected';
+  }
+  if (cf.verified) {
+    cfBadge.className = 'status-badge connected'; cfBadge.textContent = '● Connected';
+  } else {
+    cfBadge.className = 'status-badge disconnected'; cfBadge.textContent = '● Disconnected';
+  }
+}
+
+async function saveGithubSettings() {
+  const token = document.getElementById('gh-token').value.trim();
+  const owner = document.getElementById('gh-owner').value.trim();
+  if (!token) { toast('Enter a token', 'error'); return; }
+
+  toast('Verifying GitHub token...', 'info');
+  try {
+    const res = await fetch('https://api.github.com/user', { headers: { 'Authorization': 'token ' + token, 'Accept': 'application/vnd.github.v3+json' } });
+    if (!res.ok) throw new Error('Invalid token');
+    const user = await res.json();
+    LS.set('github', { token, owner: owner || user.login, verified: true, login: user.login });
+    updateIntegrationBadges();
+    toast(`Connected as ${user.login}!`, 'success');
+  } catch(e) {
+    toast('GitHub verification failed: ' + e.message, 'error');
+    LS.set('github', { token, owner, verified: false });
+  }
+}
+
+function clearGithubSettings() {
+  LS.del('github');
+  document.getElementById('gh-token').value = '';
+  document.getElementById('gh-owner').value = '';
+  updateIntegrationBadges();
+  toast('GitHub disconnected', 'info');
+}
+
+async function saveCloudflareSettings() {
+  const token = document.getElementById('cf-token').value.trim();
+  const accountId = document.getElementById('cf-account-id').value.trim();
+  if (!token || !accountId) { toast('Enter both token and account ID', 'error'); return; }
+
+  toast('Verifying Cloudflare credentials...', 'info');
+  try {
+    const res = await fetch(`https://api.cloudflare.com/client/v4/accounts/${accountId}`, {
+      headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' }
+    });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.errors?.[0]?.message || 'Invalid credentials');
+    LS.set('cloudflare', { token, accountId, verified: true, accountName: data.result?.name });
+    updateIntegrationBadges();
+    toast('Cloudflare connected!', 'success');
+  } catch(e) {
+    toast('Cloudflare verification failed: ' + e.message, 'error');
+    LS.set('cloudflare', { token, accountId, verified: false });
+  }
+}
+
+function clearCloudflareSettings() {
+  LS.del('cloudflare');
+  document.getElementById('cf-token').value = '';
+  document.getElementById('cf-account-id').value = '';
+  updateIntegrationBadges();
+  toast('Cloudflare disconnected', 'info');
+}
+
+function updateStorageInfo() {
+  let total = 0;
+  let count = 0;
+  LS.keys().filter(k=>k.startsWith('proj_')).forEach(k => {
+    const v = localStorage.getItem(LS.PREFIX+k);
+    if (v) { total += v.length; count++; }
+  });
+  const kb = (total / 1024).toFixed(1);
+  document.getElementById('storage-info').textContent = `${count} website${count!==1?'s':''} stored · ~${kb} KB used`;
+}
+
+function clearAllData() {
+  if (!confirm('Clear ALL websites and settings? This cannot be undone.')) return;
+  LS.keys().forEach(k => LS.del(k));
+  loadProjects();
+  toast('All data cleared', 'info');
+}
+
+// ============================================================
+// DEPLOY MODAL
+// ============================================================
+function openDeployModal() {
+  if (!STATE.currentProjectId) return;
+
+  const gh = LS.get('github') || {};
+  const cf = LS.get('cloudflare') || {};
+
+  document.getElementById('deploy-github-config').classList.add('hidden');
+  document.getElementById('deploy-cloudflare-config').classList.add('hidden');
+  document.getElementById('deploy-progress').classList.add('hidden');
+  document.getElementById('deploy-actions').classList.remove('hidden');
+  document.getElementById('btn-deploy-go').disabled = true;
+
+  // Pre-fill repo name from project
+  const safeName = (_projectData.name||'my-site').toLowerCase().replace(/[^a-z0-9]/g,'-');
+  document.getElementById('deploy-gh-repo').value = safeName;
+  document.getElementById('deploy-cf-project').value = safeName;
+
+  // Show connect warnings if not set up
+  document.getElementById('btn-deploy-github').innerHTML = `<span style="font-size:24px;">🐙</span><span>GitHub Pages</span>${!gh.verified?'<span style="font-size:10px;color:#f87171;">Not connected</span>':'<span style="font-size:10px;color:#4ade80;">Connected</span>'}`;
+  document.getElementById('btn-deploy-cloudflare').innerHTML = `<span style="font-size:24px;">☁️</span><span>Cloudflare Pages</span>${!cf.verified?'<span style="font-size:10px;color:#f87171;">Not connected</span>':'<span style="font-size:10px;color:#4ade80;">Connected</span>'}`;
+
+  STATE.deployTarget = null;
+  openModal('modal-deploy');
+}
+
+function selectDeployTarget(t) {
+  STATE.deployTarget = t;
+  document.getElementById('btn-deploy-github').style.borderColor = t==='github' ? 'var(--accent)' : '';
+  document.getElementById('btn-deploy-cloudflare').style.borderColor = t==='cloudflare' ? 'var(--accent)' : '';
+  document.getElementById('deploy-github-config').classList.toggle('hidden', t !== 'github');
+  document.getElementById('deploy-cloudflare-config').classList.toggle('hidden', t !== 'cloudflare');
+  document.getElementById('btn-deploy-go').disabled = false;
+
+  const gh = LS.get('github') || {};
+  const cf = LS.get('cloudflare') || {};
+  if (t === 'github' && !gh.verified) {
+    toast('GitHub not connected. Go to Settings first.', 'error');
+    document.getElementById('btn-deploy-go').disabled = true;
+  }
+  if (t === 'cloudflare' && !cf.verified) {
+    toast('Cloudflare not connected. Go to Settings first.', 'error');
+    document.getElementById('btn-deploy-go').disabled = true;
+  }
+}
+
+async function startDeploy() {
+  if (!STATE.deployTarget) return;
+  document.getElementById('deploy-actions').classList.add('hidden');
+  document.getElementById('deploy-progress').classList.remove('hidden');
+
+  if (STATE.deployTarget === 'github') {
+    await deployToGithub();
+  } else {
+    await deployToCloudflare();
+  }
+}
+
+// ============================================================
+// GITHUB DEPLOYMENT
+// ============================================================
+async function deployToGithub() {
+  const gh = LS.get('github') || {};
+  const repo = document.getElementById('deploy-gh-repo').value.trim();
+  const branch = document.getElementById('deploy-gh-branch').value.trim() || 'main';
+  const subfolder = document.getElementById('deploy-gh-folder').value.trim();
+  const owner = gh.owner || gh.login;
+
+  const steps = document.getElementById('deploy-steps');
+
+  const addStep = (title) => {
+    const el = document.createElement('div');
+    el.className = 'deploy-step';
+    el.innerHTML = `<div class="deploy-step-title">${title}</div><div class="deploy-step-status"><span class="spinner"></span> In progress...</div>`;
+    steps.appendChild(el);
+    return el;
+  };
+  const setStepDone = (el, msg = 'Done', ok = true) => {
+    el.querySelector('.deploy-step-status').innerHTML = `<span style="color:${ok?'var(--green)':'var(--red)'};">${ok?'✓':'✗'}</span> ${msg}`;
+  };
+
+  steps.innerHTML = '';
+
+  // Step 1: Ensure repo exists
+  const s1 = addStep('Checking / creating repository');
+  try {
+    let res = await ghFetch(`https://api.github.com/repos/${owner}/${repo}`, gh.token);
+    if (res.status === 404) {
+      // Create repo
+      const createRes = await fetch('https://api.github.com/user/repos', {
+        method: 'POST',
+        headers: { 'Authorization': 'token '+gh.token, 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: repo, private: false, auto_init: true, description: _projectData.name })
+      });
+      if (!createRes.ok) throw new Error('Failed to create repo');
+      await sleep(2000); // Wait for GitHub to initialize
+    } else if (!res.ok) throw new Error('Failed to check repo');
+    setStepDone(s1, `Repository ${owner}/${repo}`);
+  } catch(e) { setStepDone(s1, e.message, false); return showDeployDone(false); }
+
+  // Step 2: Get current tree (to check for existing files)
+  const s2 = addStep('Preparing files');
+  let blobs = [];
+  try {
+    // Build image map for deploy
+    const imageMap = {};
+    const libImages = _projectData.images || [];
+    libImages.forEach(img => { imageMap[img.dataURL] = img.name; });
+
+    for (const [i, page] of _projectData.pages.entries()) {
+      const html = compilePageHTML(_projectData, i, false, imageMap);
+      const filename = (page.slug || (i===0?'index':'page'+i)) + '.html';
+      const path = subfolder ? `${subfolder}/${filename}` : filename;
+      const content = btoa(unescape(encodeURIComponent(html)));
+      blobs.push({ path, content, binary: false });
+    }
+    // CSS and JS
+    blobs.push({ path: subfolder ? `${subfolder}/style.css` : 'style.css', content: btoa(unescape(encodeURIComponent(_projectData.globalCSS||''))), binary: false });
+    blobs.push({ path: subfolder ? `${subfolder}/script.js` : 'script.js', content: btoa(unescape(encodeURIComponent(_projectData.globalJS||''))), binary: false });
+    // Images
+    libImages.forEach(img => {
+      const b64 = img.dataURL.split(',')[1];
+      if (b64) {
+        const imgPath = subfolder ? `${subfolder}/images/${img.name}` : `images/${img.name}`;
+        blobs.push({ path: imgPath, content: b64, binary: true });
+      }
+    });
+    setStepDone(s2, `${blobs.length} files ready`);
+  } catch(e) { setStepDone(s2, e.message, false); return showDeployDone(false); }
+
+  // Step 3: Get ref
+  const s3 = addStep('Uploading to GitHub');
+  try {
+    // Get the latest commit SHA
+    const refRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/git/refs/heads/${branch}`, {
+      headers: { 'Authorization': 'token '+gh.token, 'Accept': 'application/vnd.github.v3+json' }
+    });
+
+    let latestCommitSha;
+    if (refRes.ok) {
+      const refData = await refRes.json();
+      latestCommitSha = refData.object.sha;
+    } else {
+      // Branch doesn't exist, get default branch
+      const repoRes = await fetch(`https://api.github.com/repos/${owner}/${repo}`, {
+        headers: { 'Authorization': 'token '+gh.token, 'Accept': 'application/vnd.github.v3+json' }
+      });
+      const repoData = await repoRes.json();
+      const defRef = await fetch(`https://api.github.com/repos/${owner}/${repo}/git/refs/heads/${repoData.default_branch}`, {
+        headers: { 'Authorization': 'token '+gh.token, 'Accept': 'application/vnd.github.v3+json' }
+      });
+      if (defRef.ok) {
+        const defData = await defRef.json();
+        latestCommitSha = defData.object.sha;
+      }
+    }
+
+    // Upload files one by one (simpler than tree API for small sites)
+    for (const blob of blobs) {
+      const fileRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${blob.path}`, {
+        headers: { 'Authorization': 'token '+gh.token, 'Accept': 'application/vnd.github.v3+json' }
+      });
+
+      let sha;
+      if (fileRes.ok) {
+        const existing = await fileRes.json();
+        sha = existing.sha;
+      }
+
+      const putBody = { message: `Deploy: ${blob.path}`, content: blob.content, branch };
+      if (sha) putBody.sha = sha;
+
+      const putRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${blob.path}`, {
+        method: 'PUT',
+        headers: { 'Authorization': 'token '+gh.token, 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+        body: JSON.stringify(putBody)
+      });
+      if (!putRes.ok) {
+        const err = await putRes.json();
+        throw new Error(err.message || 'Upload failed');
+      }
+    }
+    setStepDone(s3, `Uploaded ${blobs.length} files`);
+  } catch(e) { setStepDone(s3, e.message, false); return showDeployDone(false); }
+
+  // Done
+  const url = `https://${owner}.github.io/${repo}/${subfolder||''}`;
+  showDeployDone(true, `🎉 Deployed! Enable GitHub Pages in repo settings to go live.\n\nYour site will be at:\n${url}`, url);
+}
+
+async function ghFetch(url, token) {
+  return fetch(url, { headers: { 'Authorization': 'token '+token, 'Accept': 'application/vnd.github.v3+json' } });
+}
+
+// ============================================================
+// CLOUDFLARE DEPLOYMENT
+// ============================================================
+async function deployToCloudflare() {
+  const cf = LS.get('cloudflare') || {};
+  const projectName = document.getElementById('deploy-cf-project').value.trim();
+  const steps = document.getElementById('deploy-steps');
+  steps.innerHTML = '';
+
+  const addStep = (title) => {
+    const el = document.createElement('div');
+    el.className = 'deploy-step';
+    el.innerHTML = `<div class="deploy-step-title">${title}</div><div class="deploy-step-status"><span class="spinner"></span> In progress...</div>`;
+    steps.appendChild(el);
+    return el;
+  };
+  const setStepDone = (el, msg, ok = true) => {
+    el.querySelector('.deploy-step-status').innerHTML = `<span style="color:${ok?'var(--green)':'var(--red)'};">${ok?'✓':'✗'}</span> ${msg}`;
+  };
+
+  // Step 1: Ensure project exists
+  const s1 = addStep('Checking / creating Cloudflare Pages project');
+  try {
+    const checkRes = await fetch(`https://api.cloudflare.com/client/v4/accounts/${cf.accountId}/pages/projects/${projectName}`, {
+      headers: { 'Authorization': 'Bearer '+cf.token }
+    });
+    const checkData = await checkRes.json();
+    if (!checkData.success) {
+      // Create project
+      const createRes = await fetch(`https://api.cloudflare.com/client/v4/accounts/${cf.accountId}/pages/projects`, {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer '+cf.token, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: projectName, production_branch: 'main' })
+      });
+      const createData = await createRes.json();
+      if (!createData.success) throw new Error(createData.errors?.[0]?.message || 'Create failed');
+    }
+    setStepDone(s1, `Project: ${projectName}`);
+  } catch(e) { setStepDone(s1, e.message, false); return showDeployDone(false); }
+
+  // Step 2: Build files
+  const s2 = addStep('Building site files');
+  let files = {};
+  try {
+    // Build image map for deploy
+    const imageMap = {};
+    const libImages = _projectData.images || [];
+    libImages.forEach(img => { imageMap[img.dataURL] = img.name; });
+
+    for (const [i, page] of _projectData.pages.entries()) {
+      const html = compilePageHTML(_projectData, i, false, imageMap);
+      const filename = '/' + (page.slug || (i===0?'index':'page'+i)) + '.html';
+      files[filename] = { content: html, type: 'text/html' };
+    }
+    files['/style.css'] = { content: _projectData.globalCSS || '', type: 'text/css' };
+    files['/script.js'] = { content: _projectData.globalJS || '', type: 'text/javascript' };
+    // Images as blobs
+    for (const img of libImages) {
+      const b64 = img.dataURL.split(',')[1];
+      if (b64) {
+        const byteChars = atob(b64);
+        const byteArr = new Uint8Array(byteChars.length);
+        for (let i = 0; i < byteChars.length; i++) byteArr[i] = byteChars.charCodeAt(i);
+        files[`/images/${img.name}`] = { content: new Blob([byteArr], { type: img.type }), type: img.type, binary: true };
+      }
+    }
+    setStepDone(s2, `${Object.keys(files).length} files`);
+  } catch(e) { setStepDone(s2, e.message, false); return showDeployDone(false); }
+
+  // Step 3: Create deployment using Direct Upload
+  const s3 = addStep('Uploading to Cloudflare Pages');
+  try {
+    // Use the Direct Upload v2 API
+    // First, create a deployment
+    const deployRes = await fetch(`https://api.cloudflare.com/client/v4/accounts/${cf.accountId}/pages/projects/${projectName}/deployments`, {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer '+cf.token }
+    });
+    const deployData = await deployRes.json();
+    if (!deployData.success && deployData.errors?.[0]?.code !== 8000014) {
+      // Try direct upload via form
+      const formData = new FormData();
+      const manifest = {};
+
+      for (const [path, fileObj] of Object.entries(files)) {
+        const fileBlob = fileObj.binary ? fileObj.content : new Blob([fileObj.content], { type: fileObj.type });
+        const hashInput = fileObj.binary ? path : fileObj.content;
+        const hash = await sha1(typeof hashInput === 'string' ? hashInput : path);
+        manifest[path] = hash;
+        formData.append(hash, fileBlob, hash);
+      }
+      formData.append('manifest', JSON.stringify(manifest));
+
+      const uploadRes = await fetch(`https://api.cloudflare.com/client/v4/accounts/${cf.accountId}/pages/projects/${projectName}/deployments`, {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer '+cf.token },
+        body: formData
+      });
+      const uploadData = await uploadRes.json();
+      if (!uploadData.success) throw new Error(uploadData.errors?.[0]?.message || 'Upload failed');
+    }
+    setStepDone(s3, 'Upload complete');
+  } catch(e) { setStepDone(s3, e.message, false); return showDeployDone(false); }
+
+  const url = `https://${projectName}.pages.dev`;
+  showDeployDone(true, `🎉 Deployed to Cloudflare Pages!`, url);
+}
+
+async function sha1(str) {
+  const enc = new TextEncoder().encode(str);
+  const buf = await crypto.subtle.digest('SHA-1', enc);
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+function showDeployDone(success, message = '', url = '') {
+  const steps = document.getElementById('deploy-steps');
+  const result = document.createElement('div');
+  result.style.cssText = 'margin-top:16px;padding:16px;background:var(--bg3);border-radius:8px;';
+  result.innerHTML = success
+    ? `<div style="color:var(--green);font-weight:600;margin-bottom:8px;">✓ Deployment successful!</div>
+       <div style="font-size:13px;color:var(--text2);white-space:pre-wrap;">${message}</div>
+       ${url ? `<a href="${url}" target="_blank" style="display:inline-block;margin-top:12px;color:var(--accent);">🔗 Visit Site →</a>` : ''}`
+    : `<div style="color:var(--red);font-weight:600;">✗ Deployment failed. Check errors above.</div>`;
+  steps.appendChild(result);
+
+  document.getElementById('deploy-actions').innerHTML = '<button class="btn btn-secondary" onclick="closeModal(\'modal-deploy\')">Close</button>';
+  document.getElementById('deploy-actions').classList.remove('hidden');
+}
+
+// ============================================================
+// MODAL HELPERS
+// ============================================================
+function openModal(id) {
+  document.getElementById(id).classList.remove('hidden');
+}
+function closeModal(id) {
+  document.getElementById(id).classList.add('hidden');
+}
+
+// Close modal on overlay click
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', e => {
+    if (e.target === overlay) overlay.classList.add('hidden');
+  });
+});
+
+// Enter key in modals
+document.getElementById('new-project-name').addEventListener('keydown', e => { if (e.key==='Enter') createProject(); });
+document.getElementById('rename-input').addEventListener('keydown', e => { if (e.key==='Enter') confirmRename(); });
+document.getElementById('new-page-name').addEventListener('keydown', e => { if (e.key==='Enter') confirmAddPage(); });
+
+// ============================================================
+// TOAST
+// ============================================================
+function toast(msg, type = 'info') {
+  const icons = { success: '✓', error: '✗', info: 'ℹ' };
+  const el = document.createElement('div');
+  el.className = `toast ${type}`;
+  el.innerHTML = `<span>${icons[type]||'•'}</span><span>${msg}</span>`;
+  document.getElementById('toasts').appendChild(el);
+  setTimeout(() => el.remove(), 3000);
+}
+
+// ============================================================
+// UTILS
+// ============================================================
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+// ============================================================
+// INIT
+// ============================================================
+(function init() {
+  loadProjects();
+  renderDashboard();
+
+  // Keyboard shortcuts
+  document.addEventListener('keydown', e => {
+    if ((e.ctrlKey||e.metaKey) && e.key==='s') {
+      e.preventDefault();
+      if (STATE.currentProjectId) saveProject();
+    }
+    if (e.key==='Escape') {
+      document.querySelectorAll('.modal-overlay:not(.hidden)').forEach(m => m.classList.add('hidden'));
+    }
+  });
+
+  // Auto-resize canvas iframe
+  const iframe = document.getElementById('canvas-iframe');
+  if (iframe) {
+    const ro = new ResizeObserver(() => {
+      try {
+        iframe.style.height = (iframe.contentDocument?.body?.scrollHeight || 600) + 'px';
+      } catch(e) {}
+    });
+    ro.observe(iframe);
+  }
+})();
+</script>
+</body>
+</html>
