@@ -192,6 +192,78 @@ select.input { appearance: none; }
 /* Publish bar */
 .publish-bar { background: var(--bg2); border-top: 1px solid var(--border); padding: 8px 16px; display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 
+/* ===== MOBILE BOTTOM NAV ===== */
+.mobile-bottom-nav { display: none; background: var(--bg2); border-top: 1px solid var(--border); height: 56px; flex-shrink: 0; }
+.mob-tab { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; background: transparent; border: none; color: var(--text2); font-size: 10px; font-weight: 500; padding: 6px 0; cursor: pointer; transition: color .15s; font-family: inherit; }
+.mob-tab.active { color: var(--accent); }
+.mob-tab-icon { font-size: 20px; line-height: 1; }
+
+/* ===== MOBILE OVERFLOW MENU ===== */
+.mob-overflow-menu { position: fixed; top: 49px; right: 8px; background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); z-index: 600; min-width: 190px; padding: 4px 0; }
+.mob-overflow-item { display: flex; width: 100%; align-items: center; gap: 10px; padding: 11px 14px; background: transparent; border: none; color: var(--text); font-size: 13px; cursor: pointer; text-align: left; font-family: inherit; }
+.mob-overflow-item:hover { background: var(--bg3); }
+.mob-overflow-item.divider { border-top: 1px solid var(--border); margin-top: 4px; padding-top: 12px; }
+
+/* ===== RESPONSIVE ===== */
+/* Desktop-only / mobile-only helpers */
+.d-only { } /* visible by default */
+.m-only { display: none !important; }
+
+@media (max-width: 767px) {
+  /* Helpers */
+  .d-only { display: none !important; }
+  .m-only { display: flex !important; }
+
+  /* Dashboard */
+  .dash-header { padding: 0 12px; }
+  .dash-logo { font-size: 15px; }
+  .dash-body { padding: 16px 12px; }
+  .projects-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .project-thumb { height: 110px; }
+  .new-project-card { height: 180px; }
+
+  /* Settings */
+  .settings-body { padding: 16px 12px; }
+  .settings-section { padding: 14px; }
+
+  /* Modals */
+  .modal { width: 96vw !important; max-width: 96vw !important; padding: 18px; }
+
+  /* Editor header */
+  .editor-header { padding: 0 8px; gap: 5px; }
+  #editor-project-name { flex: 1; }
+
+  /* Show mobile bottom nav */
+  .mobile-bottom-nav { display: flex; }
+
+  /* Editor panels — one visible at a time */
+  /* Left panel: hidden by default, full-width when its tab is active */
+  .editor-left { display: none; width: 100%; border-right: none; }
+  .editor-left.mob-active { display: flex; }
+
+  /* Right panel: hidden by default, full-width when its tab is active */
+  .editor-right { display: none; width: 100%; border-left: none; }
+  .editor-right.mob-active { display: flex; }
+
+  /* Center: always flex (visible unless another panel takes over) */
+  .editor-center.mob-hidden { display: none; }
+
+  /* Canvas frame always full-width on mobile — no device frame emulation */
+  .canvas-frame, .canvas-frame.device-tablet, .canvas-frame.device-mobile { width: 100% !important; }
+  .canvas-wrap { padding: 0; }
+  .canvas-frame { border-radius: 0; box-shadow: none; }
+
+  /* Block lib buttons slightly bigger tap targets */
+  .block-btn { padding: 10px 12px; }
+
+  /* Props panel gets more room */
+  .props-panel { padding: 12px; }
+}
+
+@media (max-width: 400px) {
+  .projects-grid { grid-template-columns: 1fr; }
+}
+
 /* ===== IMAGE LIBRARY ===== */
 .img-lib-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 8px; max-height: 380px; overflow-y: auto; margin-bottom: 12px; min-height: 60px; }
 .img-lib-item { position: relative; border-radius: 6px; overflow: hidden; border: 2px solid var(--border); cursor: pointer; transition: border-color .15s; background: var(--bg3); }
@@ -293,17 +365,28 @@ select.input { appearance: none; }
 <!-- ==================== EDITOR ==================== -->
 <div id="view-editor">
   <div class="editor-header">
-    <button class="btn btn-ghost btn-sm" onclick="exitEditor()">← Dashboard</button>
+    <button class="btn btn-ghost btn-sm" onclick="exitEditor()">← <span class="d-only">Dashboard</span></button>
     <div class="editor-title" id="editor-project-name"></div>
-    <div class="editor-mode-tabs ml-auto" id="editor-mode-tabs">
+    <div class="editor-mode-tabs ml-auto d-only" id="editor-mode-tabs">
       <button class="editor-mode-tab active" data-mode="visual" onclick="switchEditorMode('visual')">Visual</button>
       <button class="editor-mode-tab" data-mode="code" onclick="switchEditorMode('code')">Code</button>
     </div>
-    <button class="btn btn-secondary btn-sm" onclick="openImageLibrary(null)">🖼 Images</button>
-    <button class="btn btn-secondary btn-sm" onclick="previewProject()">👁 Preview</button>
-    <button class="btn btn-secondary btn-sm" onclick="downloadZip()">⬇ Download ZIP</button>
+    <button class="btn btn-secondary btn-sm d-only" onclick="openImageLibrary(null)">🖼 Images</button>
+    <button class="btn btn-secondary btn-sm d-only" onclick="previewProject()">👁 Preview</button>
+    <button class="btn btn-secondary btn-sm d-only" onclick="downloadZip()">⬇ Download ZIP</button>
     <button class="btn btn-primary btn-sm" onclick="saveProject()">💾 Save</button>
-    <button class="btn btn-green btn-sm" onclick="openDeployModal()">🚀 Deploy</button>
+    <button class="btn btn-green btn-sm d-only" onclick="openDeployModal()">🚀 Deploy</button>
+    <!-- Mobile overflow trigger -->
+    <button class="btn btn-ghost btn-sm m-only" onclick="toggleMobileOverflow(event)" style="font-size:18px;padding:4px 8px;">⋮</button>
+  </div>
+
+  <!-- Mobile overflow menu (hidden by default) -->
+  <div id="mob-overflow-menu" class="mob-overflow-menu hidden">
+    <button class="mob-overflow-item" onclick="closeMobileOverflow();openImageLibrary(null)">🖼 &nbsp;Images</button>
+    <button class="mob-overflow-item" onclick="closeMobileOverflow();previewProject()">👁 &nbsp;Preview</button>
+    <button class="mob-overflow-item" onclick="closeMobileOverflow();downloadZip()">⬇ &nbsp;Download ZIP</button>
+    <button class="mob-overflow-item" onclick="closeMobileOverflow();openDeployModal()">🚀 &nbsp;Deploy</button>
+    <button class="mob-overflow-item divider" onclick="closeMobileOverflow();switchEditorMode('code')">＜/＞ &nbsp;Code Editor</button>
   </div>
 
   <!-- Visual mode -->
@@ -377,6 +460,19 @@ select.input { appearance: none; }
       <textarea class="code-textarea" id="code-editor" spellcheck="false"></textarea>
     </div>
   </div>
+
+  <!-- Mobile bottom navigation -->
+  <nav class="mobile-bottom-nav" id="mobile-bottom-nav">
+    <button class="mob-tab active" data-mob="canvas" onclick="switchMobileTab('canvas')">
+      <span class="mob-tab-icon">🖼</span><span>Canvas</span>
+    </button>
+    <button class="mob-tab" data-mob="add" onclick="switchMobileTab('add')">
+      <span class="mob-tab-icon">＋</span><span>Add</span>
+    </button>
+    <button class="mob-tab" data-mob="props" onclick="switchMobileTab('props')">
+      <span class="mob-tab-icon">⚙</span><span>Props</span>
+    </button>
+  </nav>
 </div>
 
 <!-- ==================== MODALS ==================== -->
@@ -571,6 +667,7 @@ const STATE = {
   deployTarget: null,
   editingBlockId: null,
   propsTab: 'page',
+  mobileTab: 'canvas',
   imgLibTargetBlockId: null,
   imgLibSelectedId: null,
 };
@@ -1201,6 +1298,39 @@ function renderCanvas() {
 }
 
 // Called from iframe
+// ============================================================
+// MOBILE NAV
+// ============================================================
+function isMobile() { return window.innerWidth <= 767; }
+
+function switchMobileTab(tab) {
+  STATE.mobileTab = tab;
+  const left   = document.querySelector('.editor-left');
+  const center = document.querySelector('.editor-center');
+  const right  = document.querySelector('.editor-right');
+
+  left.classList.remove('mob-active');
+  right.classList.remove('mob-active');
+  center.classList.remove('mob-hidden');
+
+  if (tab === 'add')   { left.classList.add('mob-active');  center.classList.add('mob-hidden'); }
+  if (tab === 'props') { right.classList.add('mob-active'); center.classList.add('mob-hidden'); }
+
+  document.querySelectorAll('.mob-tab').forEach(b => b.classList.toggle('active', b.dataset.mob === tab));
+}
+
+function toggleMobileOverflow(e) {
+  e && e.stopPropagation();
+  document.getElementById('mob-overflow-menu').classList.toggle('hidden');
+}
+
+function closeMobileOverflow() {
+  document.getElementById('mob-overflow-menu').classList.add('hidden');
+}
+
+// Close overflow when clicking elsewhere
+document.addEventListener('click', () => closeMobileOverflow());
+
 window.deselectBlock = function(e) {
   STATE.selectedBlockId = null;
   try {
@@ -1208,6 +1338,8 @@ window.deselectBlock = function(e) {
     doc.querySelectorAll('.block-wrapper').forEach(el => el.classList.remove('selected'));
   } catch(e) {}
   renderProps();
+  // On mobile return to canvas tab after deselecting
+  if (isMobile() && STATE.mobileTab === 'props') switchMobileTab('canvas');
 };
 
 window.selectBlock = function(id) {
@@ -1221,6 +1353,8 @@ window.selectBlock = function(id) {
     if (sel) sel.classList.add('selected');
   } catch(e) {}
   renderProps();
+  // On mobile, automatically jump to the props panel
+  if (isMobile()) switchMobileTab('props');
 };
 
 window.moveBlock = function(id, dir) {
@@ -1250,6 +1384,8 @@ function addBlock(type) {
   STATE.selectedBlockId = block.id;
   renderCanvas();
   renderProps();
+  // On mobile: go to canvas to see the new block, then select it
+  if (isMobile()) switchMobileTab('canvas');
 }
 
 // ============================================================
