@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Functional Websites — Static Site Builder</title>
+<title>Functional Websites — Static Website Builder</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <style>
 :root {
@@ -11,8 +11,8 @@
   --bg2: #16161e;
   --bg3: #1e1e2e;
   --border: #2a2a3e;
-  --accent: #7c6af7;
-  --accent2: #5a9cf7;
+  --accent: #34343f;
+  --accent2: #81818f;
   --green: #4ade80;
   --red: #f87171;
   --yellow: #facc15;
@@ -23,10 +23,11 @@
 }
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; font-size: 14px; min-height: 100vh; }
+body.editor-mode { overflow: hidden; height: 100vh; }
 button { cursor: pointer; border: none; outline: none; font-family: inherit; font-size: 13px; }
 input, textarea, select { font-family: inherit; font-size: 13px; outline: none; }
 a { color: var(--accent); text-decoration: none; }
-scrollbar-width: thin;
+html { scrollbar-width: thin; }
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: var(--bg2); }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
@@ -47,7 +48,7 @@ scrollbar-width: thin;
 /* ===== BUTTONS ===== */
 .btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: var(--radius); font-size: 13px; font-weight: 500; transition: all .15s; }
 .btn-primary { background: var(--accent); color: #fff; }
-.btn-primary:hover { background: #6b59e8; }
+.btn-primary:hover { background: #a5a5ae; }
 .btn-secondary { background: var(--bg3); color: var(--text); border: 1px solid var(--border); }
 .btn-secondary:hover { background: var(--border); }
 .btn-ghost { background: transparent; color: var(--text2); }
@@ -83,7 +84,8 @@ select.input { appearance: none; }
 
 /* ===== VIEWS ===== */
 #view-dashboard, #view-editor, #view-settings { display: none; }
-#view-dashboard.active, #view-editor.active, #view-settings.active { display: flex; flex-direction: column; min-height: 100vh; }
+#view-dashboard.active, #view-settings.active { display: flex; flex-direction: column; min-height: 100vh; }
+#view-editor.active { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
 
 /* ===== DASHBOARD ===== */
 .dash-header { background: var(--bg2); border-bottom: 1px solid var(--border); padding: 0 24px; height: 56px; display: flex; align-items: center; gap: 16px; flex-shrink: 0; }
@@ -101,7 +103,7 @@ select.input { appearance: none; }
 .project-meta { color: var(--text2); font-size: 12px; }
 .project-actions { padding: 8px 12px; border-top: 1px solid var(--border); display: flex; gap: 6px; }
 .new-project-card { border: 2px dashed var(--border); border-radius: 10px; height: 220px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; color: var(--text2); cursor: pointer; transition: all .15s; background: transparent; width: 100%; }
-.new-project-card:hover { border-color: var(--accent); color: var(--accent); background: rgba(124,106,247,0.05); }
+.new-project-card:hover { border-color: var(--accent); color: var(--accent); background: rgba(255,255,255,0.04); }
 .new-project-icon { font-size: 32px; }
 
 /* ===== EDITOR LAYOUT ===== */
@@ -111,23 +113,41 @@ select.input { appearance: none; }
 .editor-layout { display: flex; flex: 1; overflow: hidden; }
 
 /* Left panel - blocks */
-.editor-left { width: 220px; background: var(--bg2); border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; overflow-y: auto; }
-.panel-title { padding: 10px 12px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: var(--text2); border-bottom: 1px solid var(--border); }
+.editor-left { width: 220px; background: var(--bg2); border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; overflow-y: auto; height: 100%; }
+.panel-title { padding: 10px 12px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: var(--text2); border-bottom: 1px solid var(--border); flex-shrink: 0; }
 .block-btn { display: flex; align-items: center; gap: 8px; width: 100%; padding: 8px 12px; background: transparent; border: none; color: var(--text); text-align: left; border-radius: 0; transition: background .1s; font-size: 13px; }
 .block-btn:hover { background: var(--bg3); }
 .block-btn .block-icon { width: 28px; height: 28px; border-radius: 5px; background: var(--bg3); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
 .blocks-section { margin-bottom: 4px; }
 .blocks-section-label { padding: 6px 12px 2px; font-size: 10px; text-transform: uppercase; letter-spacing: .1em; color: var(--text2); }
+/* Left panel tabs (Add / Layout) */
+.left-tabs { display: flex; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+.left-tab { flex: 1; padding: 8px 4px; border: none; background: transparent; color: var(--text2); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; cursor: pointer; transition: all .1s; }
+.left-tab.active { color: var(--text); background: var(--bg3); border-bottom: 2px solid var(--accent); }
+.left-tab-panel { display: none; flex-direction: column; }
+.left-tab-panel.active { display: flex; }
+/* Layout overview list */
+.layout-item { display: flex; align-items: center; gap: 6px; padding: 7px 8px; border-bottom: 1px solid var(--border); cursor: pointer; }
+.layout-item:hover { background: var(--bg3); }
+.layout-item.selected { background: rgba(255,255,255,.06); border-left: 2px solid var(--accent); }
+.layout-item-icon { font-size: 12px; width: 22px; text-align: center; flex-shrink: 0; opacity: .7; }
+.layout-item-info { flex: 1; min-width: 0; }
+.layout-item-type { font-size: 11px; font-weight: 600; text-transform: capitalize; }
+.layout-item-slug { font-size: 10px; color: var(--text2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.layout-item-actions { display: flex; gap: 1px; flex-shrink: 0; opacity: 0; transition: opacity .1s; }
+.layout-item:hover .layout-item-actions { opacity: 1; }
 
 /* Pages list */
 .pages-list { padding: 8px; display: flex; flex-direction: column; gap: 2px; }
 .page-item { display: flex; align-items: center; padding: 6px 8px; border-radius: 6px; cursor: pointer; gap: 6px; }
 .page-item:hover { background: var(--bg3); }
-.page-item.active { background: rgba(124,106,247,.15); color: var(--accent); }
-.page-item-name { flex: 1; truncate: true; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.page-item.active { background: rgba(255,255,255,.08); color: var(--accent); }
+.page-item-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.page-item-action { opacity: 0; transition: opacity .1s; }
+.page-item:hover .page-item-action { opacity: 1; }
 
 /* Center - canvas */
-.editor-center { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: #1a1a2e; }
+.editor-center { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: #18181b; }
 .editor-toolbar { background: var(--bg2); border-bottom: 1px solid var(--border); padding: 6px 12px; display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
 .device-btn { padding: 4px 8px; border-radius: 5px; background: transparent; border: 1px solid transparent; color: var(--text2); font-size: 16px; }
 .device-btn.active, .device-btn:hover { border-color: var(--border); background: var(--bg3); color: var(--text); }
@@ -138,7 +158,7 @@ select.input { appearance: none; }
 #canvas-iframe { width: 100%; border: none; display: block; min-height: 600px; }
 
 /* Right panel - properties */
-.editor-right { width: 260px; background: var(--bg2); border-left: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; overflow-y: auto; }
+.editor-right { width: 260px; background: var(--bg2); border-left: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; overflow-y: auto; height: 100%; }
 .props-panel { padding: 12px; }
 .props-section { margin-bottom: 16px; }
 .props-section-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: var(--text2); margin-bottom: 8px; }
@@ -268,7 +288,7 @@ select.input { appearance: none; }
 .img-lib-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 8px; max-height: 380px; overflow-y: auto; margin-bottom: 12px; min-height: 60px; }
 .img-lib-item { position: relative; border-radius: 6px; overflow: hidden; border: 2px solid var(--border); cursor: pointer; transition: border-color .15s; background: var(--bg3); }
 .img-lib-item:hover { border-color: var(--accent); }
-.img-lib-item.selected { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(124,106,247,.3); }
+.img-lib-item.selected { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(255,255,255,.12); }
 .img-lib-item img { width: 100%; height: 80px; object-fit: cover; display: block; }
 .img-lib-name { font-size: 10px; padding: 3px 5px; color: var(--text2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; background: var(--bg2); }
 .img-lib-del { position: absolute; top: 2px; right: 2px; width: 18px; height: 18px; border-radius: 3px; background: rgba(0,0,0,0.75); color: #fff; font-size: 11px; display: none; align-items: center; justify-content: center; border: none; cursor: pointer; line-height: 1; padding: 0; }
@@ -291,6 +311,7 @@ select.input { appearance: none; }
     <div class="dash-logo"><span>Functional</span> Websites</div>
     <div class="ml-auto flex gap-2">
       <button class="btn btn-ghost btn-sm" onclick="showSettings()">⚙ Settings</button>
+      <button class="btn btn-secondary btn-sm" onclick="triggerExistingSiteUpload()">⇪ Upload Existing Site</button>
       <button class="btn btn-primary btn-sm" onclick="openNewProjectModal()">+ New Website</button>
     </div>
   </header>
@@ -302,6 +323,7 @@ select.input { appearance: none; }
         <span>Create New Website</span>
       </button>
     </div>
+    <input type="file" id="existing-site-upload" accept=".zip,application/zip" style="display:none" onchange="uploadExistingSite(this)">
   </div>
 </div>
 
@@ -365,9 +387,13 @@ select.input { appearance: none; }
 <!-- ==================== EDITOR ==================== -->
 <div id="view-editor">
   <div class="editor-header">
-    <button class="btn btn-ghost btn-sm" onclick="exitEditor()">← <span class="d-only">Dashboard</span></button>
+    <button id="editor-back-btn" class="btn btn-ghost btn-sm" onclick="exitEditor()">← <span class="d-only">Dashboard</span></button>
     <div class="editor-title" id="editor-project-name"></div>
-    <div class="editor-mode-tabs ml-auto d-only" id="editor-mode-tabs">
+    <div class="flex items-center gap-1 ml-auto d-only">
+      <button id="btn-undo" class="btn btn-ghost btn-sm" onclick="undo()" title="Undo (Ctrl+Z)" disabled style="font-size:16px;padding:4px 7px;">↩</button>
+      <button id="btn-redo" class="btn btn-ghost btn-sm" onclick="redo()" title="Redo (Ctrl+Shift+Z)" disabled style="font-size:16px;padding:4px 7px;">↪</button>
+    </div>
+    <div class="editor-mode-tabs d-only" id="editor-mode-tabs">
       <button class="editor-mode-tab active" data-mode="visual" onclick="switchEditorMode('visual')">Visual</button>
       <button class="editor-mode-tab" data-mode="code" onclick="switchEditorMode('code')">Code</button>
     </div>
@@ -382,7 +408,9 @@ select.input { appearance: none; }
 
   <!-- Mobile overflow menu (hidden by default) -->
   <div id="mob-overflow-menu" class="mob-overflow-menu hidden">
-    <button class="mob-overflow-item" onclick="closeMobileOverflow();openImageLibrary(null)">🖼 &nbsp;Images</button>
+    <button class="mob-overflow-item" onclick="closeMobileOverflow();undo()" id="mob-btn-undo">↩ &nbsp;Undo</button>
+    <button class="mob-overflow-item" onclick="closeMobileOverflow();redo()" id="mob-btn-redo">↪ &nbsp;Redo</button>
+    <button class="mob-overflow-item divider" onclick="closeMobileOverflow();openImageLibrary(null)">🖼 &nbsp;Images</button>
     <button class="mob-overflow-item" onclick="closeMobileOverflow();previewProject()">👁 &nbsp;Preview</button>
     <button class="mob-overflow-item" onclick="closeMobileOverflow();downloadZip()">⬇ &nbsp;Download ZIP</button>
     <button class="mob-overflow-item" onclick="closeMobileOverflow();openDeployModal()">🚀 &nbsp;Deploy</button>
@@ -396,29 +424,41 @@ select.input { appearance: none; }
       <div class="panel-title">Pages</div>
       <div class="pages-list" id="pages-list"></div>
       <button class="btn btn-ghost btn-sm" style="margin:4px 8px;" onclick="addPage()">+ Add Page</button>
-      <div class="panel-title" style="margin-top:8px;">Blocks</div>
-      <div class="blocks-section">
-        <div class="blocks-section-label">Layout</div>
-        <button class="block-btn" onclick="addBlock('section')"><span class="block-icon">▭</span> Section</button>
-        <button class="block-btn" onclick="addBlock('columns2')"><span class="block-icon">⊞</span> 2 Columns</button>
-        <button class="block-btn" onclick="addBlock('columns3')"><span class="block-icon">⊟</span> 3 Columns</button>
-        <button class="block-btn" onclick="addBlock('divider')"><span class="block-icon">─</span> Divider</button>
-        <button class="block-btn" onclick="addBlock('spacer')"><span class="block-icon">↕</span> Spacer</button>
+      <!-- Add / Layout tabs -->
+      <div class="left-tabs">
+        <button class="left-tab active" id="left-tab-add" onclick="switchLeftTab('add')">Add</button>
+        <button class="left-tab" id="left-tab-layout" onclick="switchLeftTab('layout')">Layout</button>
       </div>
-      <div class="blocks-section">
-        <div class="blocks-section-label">Content</div>
-        <button class="block-btn" onclick="addBlock('nav')"><span class="block-icon">☰</span> Navbar</button>
-        <button class="block-btn" onclick="addBlock('hero')"><span class="block-icon">★</span> Hero</button>
-        <button class="block-btn" onclick="addBlock('heading')"><span class="block-icon">H</span> Heading</button>
-        <button class="block-btn" onclick="addBlock('text')"><span class="block-icon">¶</span> Text</button>
-        <button class="block-btn" onclick="addBlock('image')"><span class="block-icon">🖼</span> Image</button>
-        <button class="block-btn" onclick="addBlock('button')"><span class="block-icon">□</span> Button</button>
-        <button class="block-btn" onclick="addBlock('cards')"><span class="block-icon">▦</span> Cards</button>
-        <button class="block-btn" onclick="addBlock('features')"><span class="block-icon">✦</span> Features</button>
-        <button class="block-btn" onclick="addBlock('cta')"><span class="block-icon">⚡</span> CTA</button>
-        <button class="block-btn" onclick="addBlock('footer')"><span class="block-icon">▬</span> Footer</button>
-        <button class="block-btn" onclick="addBlock('form')"><span class="block-icon">✉</span> Contact Form</button>
-        <button class="block-btn" onclick="addBlock('html')"><span class="block-icon">&lt;/&gt;</span> Custom HTML</button>
+      <!-- Add blocks panel -->
+      <div class="left-tab-panel active" id="left-add-panel" style="overflow-y:auto;flex:1;">
+        <div class="blocks-section">
+          <div class="blocks-section-label">Layout</div>
+          <button class="block-btn" onclick="addBlock('section')"><span class="block-icon">▭</span> Section</button>
+          <button class="block-btn" onclick="addBlock('columns2')"><span class="block-icon">⊞</span> 2 Columns</button>
+          <button class="block-btn" onclick="addBlock('columns3')"><span class="block-icon">⊟</span> 3 Columns</button>
+          <button class="block-btn" onclick="addBlock('divider')"><span class="block-icon">─</span> Divider</button>
+          <button class="block-btn" onclick="addBlock('spacer')"><span class="block-icon">↕</span> Spacer</button>
+        </div>
+        <div class="blocks-section">
+          <div class="blocks-section-label">Content</div>
+          <button class="block-btn" onclick="addBlock('nav')"><span class="block-icon">☰</span> Navbar</button>
+          <button class="block-btn" onclick="addBlock('hero')"><span class="block-icon">★</span> Hero</button>
+          <button class="block-btn" onclick="addBlock('heading')"><span class="block-icon">H</span> Heading</button>
+          <button class="block-btn" onclick="addBlock('text')"><span class="block-icon">¶</span> Text</button>
+          <button class="block-btn" onclick="addBlock('image')"><span class="block-icon">🖼</span> Image</button>
+          <button class="block-btn" onclick="addBlock('button')"><span class="block-icon">□</span> Button</button>
+          <button class="block-btn" onclick="addBlock('cards')"><span class="block-icon">▦</span> Cards</button>
+          <button class="block-btn" onclick="addBlock('features')"><span class="block-icon">✦</span> Features</button>
+          <button class="block-btn" onclick="addBlock('cta')"><span class="block-icon">⚡</span> CTA</button>
+          <button class="block-btn" onclick="addBlock('footer')"><span class="block-icon">▬</span> Footer</button>
+          <button class="block-btn" onclick="addBlock('form')"><span class="block-icon">✉</span> Contact Form</button>
+          <button class="block-btn" onclick="addBlock('html')"><span class="block-icon">&lt;/&gt;</span> Custom HTML</button>
+        </div>
+        <div id="templates-section"></div>
+      </div>
+      <!-- Layout overview panel -->
+      <div class="left-tab-panel" id="left-layout-panel" style="overflow-y:auto;flex:1;">
+        <div id="layout-list"></div>
       </div>
     </div>
 
@@ -454,7 +494,8 @@ select.input { appearance: none; }
         <div class="code-tab" data-file="css" onclick="switchCodeTab('css')">style.css</div>
         <div class="code-tab" data-file="js" onclick="switchCodeTab('js')">script.js</div>
       </div>
-      <button class="btn btn-primary btn-sm ml-auto" style="margin:6px 0;" onclick="applyCode()">▶ Apply</button>
+      <div id="html-tab-note" class="text-muted text-sm ml-auto" style="font-style:italic;padding:0 8px;">Read-only preview</div>
+      <button id="btn-apply-code" class="btn btn-primary btn-sm" style="margin:6px 0;display:none;" onclick="applyCode()">▶ Apply</button>
     </div>
     <div class="code-area">
       <textarea class="code-textarea" id="code-editor" spellcheck="false"></textarea>
@@ -483,6 +524,39 @@ select.input { appearance: none; }
     <div class="field">
       <label class="label">Website Name</label>
       <input class="input" id="new-project-name" type="text" placeholder="My Awesome Site">
+    </div>
+    <div class="field">
+      <label class="label">Brand Name</label>
+      <input class="input" id="new-project-brand-name" type="text" placeholder="Defaults to website name">
+    </div>
+    <div class="field">
+      <label class="label">Author / Business Name</label>
+      <input class="input" id="new-project-author" type="text" placeholder="Jane Doe Studio">
+    </div>
+    <div class="field">
+      <label class="label">Default Description</label>
+      <textarea class="input" id="new-project-description" rows="3" placeholder="Short description used for SEO and social sharing"></textarea>
+    </div>
+    <div class="field">
+      <label class="label">Starting Brand Colors</label>
+      <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;">
+        <div>
+          <label class="label">Accent</label>
+          <input class="input" id="new-project-accent" type="color" value="#7c6af7" style="padding:4px;height:38px;">
+        </div>
+        <div>
+          <label class="label">Page Background</label>
+          <input class="input" id="new-project-page-bg" type="color" value="#ffffff" style="padding:4px;height:38px;">
+        </div>
+        <div>
+          <label class="label">Section Background</label>
+          <input class="input" id="new-project-section-bg" type="color" value="#f8f8f8" style="padding:4px;height:38px;">
+        </div>
+        <div>
+          <label class="label">Text Color</label>
+          <input class="input" id="new-project-text-dark" type="color" value="#111111" style="padding:4px;height:38px;">
+        </div>
+      </div>
     </div>
     <div class="field">
       <label class="label">Template</label>
@@ -575,7 +649,7 @@ select.input { appearance: none; }
           <label class="label">Subfolder (optional)</label>
           <input class="input" id="deploy-gh-folder" type="text" placeholder="Leave blank for root">
         </div>
-        <div style="background:rgba(124,106,247,.1);border:1px solid rgba(124,106,247,.3);border-radius:8px;padding:10px;margin-bottom:12px;font-size:12px;color:var(--text2);">
+        <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:10px;margin-bottom:12px;font-size:12px;color:var(--text2);">
           💡 To use GitHub Pages: after deployment, go to your repo Settings → Pages → set source to the <code>main</code> branch.
         </div>
       </div>
@@ -585,7 +659,7 @@ select.input { appearance: none; }
           <label class="label">Project Name</label>
           <input class="input" id="deploy-cf-project" type="text" placeholder="my-website">
         </div>
-        <div style="background:rgba(124,106,247,.1);border:1px solid rgba(124,106,247,.3);border-radius:8px;padding:10px;margin-bottom:12px;font-size:12px;color:var(--text2);">
+        <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:10px;margin-bottom:12px;font-size:12px;color:var(--text2);">
           💡 Uses Cloudflare Pages Direct Upload. Project will be created automatically if it doesn't exist.
         </div>
       </div>
@@ -670,7 +744,94 @@ const STATE = {
   mobileTab: 'canvas',
   imgLibTargetBlockId: null,
   imgLibSelectedId: null,
+  imgLibCallback: null,
 };
+
+const BUILDER_MANIFEST_FILE = 'functional-websites-manifest.json';
+const BUILDER_PROJECT_FILE = 'functional-websites-project.json';
+
+// ============================================================
+// UNDO / REDO  (max 50 states, snapshots everything except images)
+// ============================================================
+const UNDO_LIMIT = 50;
+let _undoStack = [];
+let _redoStack = [];
+let _undoPending = false;
+
+function _snapshot() {
+  return JSON.stringify({
+    pages:     _projectData.pages,
+    globalCSS: _projectData.globalCSS,
+    globalJS:  _projectData.globalJS,
+    meta:      _projectData.meta,
+    navbars:   _projectData.navbars,
+  });
+}
+
+function _restore(snap) {
+  const s = JSON.parse(snap);
+  _projectData.pages     = s.pages;
+  _projectData.globalCSS = s.globalCSS;
+  _projectData.globalJS  = s.globalJS;
+  _projectData.meta      = s.meta;
+  _projectData.navbars   = s.navbars || {};
+}
+
+function pushUndo() {
+  _undoStack.push(_snapshot());
+  if (_undoStack.length > UNDO_LIMIT) _undoStack.shift();
+  _redoStack = [];
+  _updateUndoUI();
+}
+
+// Debounced version for high-frequency inputs (typing in a field)
+function pushUndoDebounced() {
+  if (_undoPending) return;
+  _undoPending = true;
+  setTimeout(() => { pushUndo(); _undoPending = false; }, 600);
+}
+
+function undo() {
+  if (!_undoStack.length) return;
+  _redoStack.push(_snapshot());
+  _restore(_undoStack.pop());
+  STATE.selectedBlockId = null;
+  renderPagesList();
+  renderCanvas();
+  renderProps();
+  renderTemplatesSection();
+  _updateUndoUI();
+  toast('Undone', 'info');
+}
+
+function redo() {
+  if (!_redoStack.length) return;
+  _undoStack.push(_snapshot());
+  _restore(_redoStack.pop());
+  STATE.selectedBlockId = null;
+  renderPagesList();
+  renderCanvas();
+  renderProps();
+  renderTemplatesSection();
+  _updateUndoUI();
+  toast('Redone', 'info');
+}
+
+function _updateUndoUI() {
+  const canUndo = _undoStack.length > 0;
+  const canRedo = _redoStack.length > 0;
+  const u = document.getElementById('btn-undo');
+  const r = document.getElementById('btn-redo');
+  const mu = document.getElementById('mob-btn-undo');
+  const mr = document.getElementById('mob-btn-redo');
+  if (u) u.disabled = !canUndo;
+  if (r) r.disabled = !canRedo;
+  if (mu) mu.style.opacity = canUndo ? '1' : '0.4';
+  if (mr) mr.style.opacity = canRedo ? '1' : '0.4';
+}
+
+// Clear stacks when a new project is opened
+function _resetUndo() { _undoStack = []; _redoStack = []; _updateUndoUI(); }
 
 // ============================================================
 // STORAGE
@@ -699,13 +860,41 @@ function saveProjectData(id, data) {
 // ============================================================
 // PROJECT DATA STRUCTURE
 // ============================================================
-function createBlankProjectData(name) {
+const BRAND_COLORS = [
+  { key: 'pageBg',           label: 'Page Background',        cssVar: '--color-page-bg',           default: '#ffffff' },
+  { key: 'sectionBg',        label: 'Section Background',     cssVar: '--color-section-bg',        default: '#f8f8f8' },
+  { key: 'textDark',         label: 'Text (Dark)',            cssVar: '--color-text-dark',         default: '#111111' },
+  { key: 'textMuted',        label: 'Text (Muted)',           cssVar: '--color-text-muted',        default: '#666666' },
+  { key: 'textLight',        label: 'Text (Light)',           cssVar: '--color-text-light',        default: '#ffffff' },
+  { key: 'accent',           label: 'Brand Accent',           cssVar: '--color-accent',            default: '#7c6af7' },
+  { key: 'accentText',       label: 'Accent Text',            cssVar: '--color-accent-text',       default: '#ffffff' },
+  { key: 'btnPrimary',       label: 'Button Primary',         cssVar: '--color-btn-primary',       default: '#7c6af7' },
+  { key: 'btnPrimaryText',   label: 'Button Primary Text',    cssVar: '--color-btn-primary-text',  default: '#ffffff' },
+  { key: 'btnSecondary',     label: 'Button Secondary',       cssVar: '--color-btn-secondary',     default: '#f0f0f0' },
+  { key: 'btnSecondaryText', label: 'Button Secondary Text',  cssVar: '--color-btn-secondary-text',default: '#333333' },
+  { key: 'navBg',            label: 'Navbar Background',      cssVar: '--color-nav-bg',            default: '#ffffff' },
+  { key: 'footerBg',         label: 'Footer Background',      cssVar: '--color-footer-bg',         default: '#1a1a1a' },
+  { key: 'border',           label: 'Border',                 cssVar: '--color-border',            default: '#e0e0e0' },
+];
+
+let _brandContext = null;
+let _projectNameContext = '';
+
+function createBlankProjectData(name, setup = {}) {
+  const brand = {};
+  BRAND_COLORS.forEach(c => { brand[c.key] = c.default; });
+  Object.assign(brand, setup.brand || {});
+  const brandName = setup.brandName || name;
   return {
     name,
-    globalCSS: `/* Global styles */\nbody { margin: 0; font-family: 'Segoe UI', system-ui, sans-serif; }\n* { box-sizing: border-box; }`,
+    brandName,
+    globalCSS: `/* Global styles */\nbody { margin: 0; font-family: 'Segoe UI', system-ui, sans-serif; background: var(--color-page-bg, #ffffff); color: var(--color-text-dark, #111111); }\n* { box-sizing: border-box; }`,
     globalJS: `// Global scripts\n`,
-    meta: { description: '', keywords: '', author: '', favicon: '', ogType: 'website', ogImage: '', twitterCard: 'summary_large_image' },
+    meta: { description: setup.description || '', keywords: '', author: setup.author || '', favicon: '', ogType: 'website', ogImage: '', twitterCard: 'summary_large_image' },
+    brand,
     images: [],
+    templates: [],
+    navbars: {},
     pages: [
       { id: uid(), name: 'Home', slug: 'index', blocks: [], meta: {} }
     ]
@@ -717,8 +906,8 @@ function applyTemplate(data, template) {
   const p = data.pages[0];
   if (template === 'landing') {
     p.blocks = [
-      mkBlock('nav', { brand: 'My Site', links: 'Home, About, Contact' }),
-      mkBlock('hero', { heading: 'Welcome to My Website', subheading: 'Build something amazing today.', buttonText: 'Get Started', buttonHref: '#', bgColor: '#7c6af7', textColor: '#ffffff' }),
+      mkBlock('nav', {}),
+      mkBlock('hero', { heading: 'Welcome to My Website', subheading: 'Build something amazing today.', buttonText: 'Get Started', buttonHref: '#', bgColor: data.brand?.accent || '#7c6af7', textColor: '#ffffff' }),
       mkBlock('features', {}),
       mkBlock('cta', {}),
       mkBlock('footer', {}),
@@ -726,21 +915,21 @@ function applyTemplate(data, template) {
     data.globalCSS += `\nsection { padding: 60px 20px; }\n.container { max-width: 1100px; margin: 0 auto; }`;
   } else if (template === 'portfolio') {
     p.blocks = [
-      mkBlock('nav', { brand: 'Portfolio', links: 'Work, About, Contact' }),
+      mkBlock('nav', {}),
       mkBlock('hero', { heading: "Hi, I'm Your Name", subheading: 'Designer & Developer', buttonText: 'View Work', buttonHref: '#work', bgColor: '#1a1a2e', textColor: '#ffffff' }),
       mkBlock('cards', {}),
       mkBlock('footer', {}),
     ];
   } else if (template === 'blog') {
     p.blocks = [
-      mkBlock('nav', { brand: 'My Blog', links: 'Home, Articles, About' }),
+      mkBlock('nav', {}),
       mkBlock('hero', { heading: 'Welcome to My Blog', subheading: 'Thoughts, stories, and ideas.', buttonText: 'Read Articles', buttonHref: '#', bgColor: '#1e1e2e', textColor: '#ffffff' }),
       mkBlock('text', { content: '<p>Start writing your blog content here. Add more text blocks, headings, and images to build your first article.</p>' }),
       mkBlock('footer', {}),
     ];
   } else if (template === 'docs') {
     p.blocks = [
-      mkBlock('nav', { brand: 'Docs', links: 'Guide, API, Examples' }),
+      mkBlock('nav', {}),
       mkBlock('heading', { text: 'Documentation', level: 'h1' }),
       mkBlock('text', { content: '<p>Welcome to the documentation. Use the navigation to explore topics.</p>' }),
       mkBlock('footer', {}),
@@ -761,13 +950,15 @@ function uid() {
 }
 
 function mkBlock(type, props = {}) {
+  const brand = _brandContext || _projectData?.brand || {};
+  const projectBrandName = _projectData?.brandName || _projectNameContext || _projectData?.name || 'My Site';
   const defaults = {
-    nav: { brand: 'My Site', links: 'Home, About, Contact', bgColor: '#ffffff', textColor: '#333333', linkColor: '#333333' },
-    hero: { heading: 'Welcome', subheading: 'Your tagline here.', buttonText: 'Learn More', buttonHref: '#', bgColor: '#7c6af7', textColor: '#ffffff', btnBg: '#ffffff', btnColor: '#7c6af7' },
+    nav: { navbarId: 'main' },
+    hero: { heading: 'Welcome', subheading: 'Your tagline here.', buttonText: 'Learn More', buttonHref: '#', bgColor: brand.accent || '#7c6af7', textColor: '#ffffff', btnBg: '#ffffff', btnColor: brand.accent || '#7c6af7', minHeight: 'auto', contentWidth: '900px', align: 'center' },
     heading: { text: 'Section Title', level: 'h2', align: 'left', color: '#111111' },
     text: { content: '<p>Add your text content here. Click to edit.</p>', align: 'left', color: '#333333' },
-    image: { src: '', alt: 'Image', width: '100%', align: 'center', rounded: true, caption: '' },
-    button: { text: 'Click Here', href: '#', bgColor: '#7c6af7', textColor: '#ffffff', align: 'center', size: 'medium', rounded: true },
+    image: { src: '', alt: 'Image', width: '100%', height: 'auto', aspectRatio: '', fit: 'contain', align: 'center', rounded: true, caption: '' },
+    button: { text: 'Click Here', href: '#', bgColor: brand.accent || '#7c6af7', textColor: '#ffffff', align: 'center', size: 'medium', rounded: true },
     section: { bgColor: '#ffffff', padding: '60px 20px', maxWidth: '1100px' },
     columns2: { bgColor: '#ffffff', padding: '40px 20px', col1: '<p>Column 1 content</p>', col2: '<p>Column 2 content</p>', gap: '24px' },
     columns3: { bgColor: '#ffffff', padding: '40px 20px', col1: '<p>Column 1</p>', col2: '<p>Column 2</p>', col3: '<p>Column 3</p>', gap: '20px' },
@@ -783,35 +974,89 @@ function mkBlock(type, props = {}) {
       { icon: '🎨', title: 'Beautiful', desc: 'Stunning designs out of the box.' },
       { icon: '🔒', title: 'Secure', desc: 'Built with security in mind.' },
     ]},
-    cta: { bgColor: '#7c6af7', textColor: '#ffffff', padding: '80px 20px', heading: 'Ready to get started?', subheading: 'Join thousands of happy users today.', buttonText: 'Get Started Free', buttonHref: '#', btnBg: '#ffffff', btnColor: '#7c6af7' },
-    footer: { bgColor: '#1a1a1a', textColor: '#aaaaaa', linkColor: '#cccccc', brand: 'My Site', tagline: 'Building the web.', copyright: '© 2025 My Site. All rights reserved.' },
-    form: { bgColor: '#f8f8f8', padding: '60px 20px', title: 'Contact Us', submitText: 'Send Message', action: '#' },
+    cta: { bgColor: brand.accent || '#7c6af7', textColor: '#ffffff', padding: '80px 20px', heading: 'Ready to get started?', subheading: 'Join thousands of happy users today.', buttonText: 'Get Started Free', buttonHref: '#', btnBg: '#ffffff', btnColor: brand.accent || '#7c6af7' },
+    footer: { bgColor: brand.dark || '#1a1a1a', textColor: '#aaaaaa', linkColor: '#cccccc', brand: projectBrandName, tagline: 'Building the web.', copyright: `© ${new Date().getFullYear()} ${projectBrandName}. All rights reserved.` },
+    form: { bgColor: '#f8f8f8', padding: '60px 20px', title: 'Contact Us', submitText: 'Send Message', action: '#', btnBg: brand.accent || '#7c6af7', btnColor: '#ffffff' },
     html: { code: '<div style="padding:20px;background:#f0f0f0;border-radius:8px;text-align:center;">\n  <p>Custom HTML block. Click Properties to edit.</p>\n</div>' },
   };
-  return { id: uid(), type, props: Object.assign({}, defaults[type] || {}, props) };
+  // Track which props are linked to brand color keys so they auto-update when brand changes
+  const brandLinkDefaults = {
+    hero:   { bgColor: 'accent', btnColor: 'accent' },
+    button: { bgColor: 'accent' },
+    cta:    { bgColor: 'accent', btnColor: 'accent' },
+    footer: { bgColor: 'dark' },
+    form:   { btnBg: 'accent' },
+  };
+  const block = { id: uid(), type, props: Object.assign({}, defaults[type] || {}, props) };
+  if (brandLinkDefaults[type] && brand.accent) {
+    block.brandLinks = Object.assign({}, brandLinkDefaults[type]);
+  }
+  return block;
 }
 
 // ============================================================
 // BLOCK RENDERERS
 // ============================================================
-function renderBlock(block, editing = false) {
+function renderBlock(block, editing = false, ctx = null) {
+  const html = _renderBlockInner(block, editing, ctx);
+  if (!editing) {
+    const p = block.props;
+    let out = html;
+    if (p.blockCSS) out = `<style>\n${p.blockCSS}\n</style>\n` + out;
+    if (p.blockJS)  out += `\n<script>\n${p.blockJS}\n<\/script>`;
+    return out;
+  }
+  return html;
+}
+
+function _renderBlockInner(block, editing = false, ctx = null) {
   const p = block.props;
-  const sel = editing ? `data-block-id="${block.id}" class="block-wrapper"` : '';
+  const anchorAttr = p.anchor ? ` id="${escAttr(p.anchor)}"` : '';
+  const sel = editing
+    ? `data-block-id="${block.id}" class="block-wrapper"${anchorAttr}`
+    : anchorAttr.trim();
+  const pd = ctx || _projectData;
 
   switch(block.type) {
     case 'nav': {
-      const links = (p.links||'').split(',').map(l=>l.trim()).filter(Boolean);
-      const linkHtml = links.map(l=>`<a href="#" style="color:${p.linkColor||'#333'};text-decoration:none;padding:0 12px;font-weight:500;">${l}</a>`).join('');
-      return `<nav ${sel} style="background:${p.bgColor||'#fff'};padding:14px 24px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 1px 4px rgba(0,0,0,0.08);">
+      // Legacy nav blocks (no navbarId)
+      if (!p.navbarId) {
+        const links = (p.links||'').split(',').map(l=>l.trim()).filter(Boolean);
+        const linkHtml = links.map(l=>`<a href="#" style="color:${p.linkColor||'#333'};text-decoration:none;padding:0 12px;font-weight:500;">${l}</a>`).join('');
+        return `<nav ${sel} style="background:${p.bgColor||'#fff'};padding:14px 24px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 1px 4px rgba(0,0,0,0.08);">
   <div style="font-weight:700;font-size:18px;color:${p.textColor||'#333'};">${p.brand||'My Site'}</div>
+  <div>${linkHtml}</div>
+</nav>`;
+      }
+      if (!pd) return `<nav ${sel}></nav>`;
+      if (!pd.navbars) pd.navbars = {};
+      if (!pd.navbars[p.navbarId]) ensureNavbar(p.navbarId);
+      const nc = pd.navbars[p.navbarId];
+      const pages = pd.pages || [];
+      const pageLinks = nc.pageLinks === 'all'
+        ? pages
+        : pages.filter(pg => Array.isArray(nc.pageLinks) && nc.pageLinks.includes(pg.id));
+      const allLinks = [
+        ...pageLinks.map(pg => ({ label: pg.name, href: (pg.slug||'index') + '.html' })),
+        ...(nc.customLinks || [])
+      ];
+      const linkHtml = allLinks.map(l =>
+        `<a href="${l.href}" style="color:${nc.linkColor||'#333'};text-decoration:none;padding:0 12px;font-weight:500;">${l.label}</a>`
+      ).join('');
+      return `<nav ${sel} style="background:${nc.bgColor||'#fff'};padding:14px 24px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 1px 4px rgba(0,0,0,0.08);">
+  <div style="font-weight:700;font-size:18px;color:${nc.textColor||'#333'};">${nc.brand||'My Site'}</div>
   <div>${linkHtml}</div>
 </nav>`;
     }
     case 'hero': {
-      return `<section ${sel} style="background:${p.bgColor||'#7c6af7'};color:${p.textColor||'#fff'};padding:100px 24px;text-align:center;">
-  <h1 style="font-size:clamp(28px,5vw,56px);font-weight:800;margin:0 0 16px;">${p.heading||'Welcome'}</h1>
-  <p style="font-size:clamp(14px,2vw,20px);margin:0 0 32px;opacity:0.85;">${p.subheading||''}</p>
-  ${p.buttonText ? `<a href="${p.buttonHref||'#'}" style="background:${p.btnBg||'#fff'};color:${p.btnColor||'#7c6af7'};padding:14px 32px;border-radius:6px;font-weight:600;font-size:16px;text-decoration:none;display:inline-block;">${p.buttonText}</a>` : ''}
+      const heroAlign = p.align || 'center';
+      const heroFlexAlign = heroAlign === 'left' ? 'flex-start' : heroAlign === 'right' ? 'flex-end' : 'center';
+      return `<section ${sel} style="background:${p.bgColor||'#7c6af7'};color:${p.textColor||'#fff'};padding:100px 24px;min-height:${p.minHeight||'auto'};display:flex;align-items:center;justify-content:center;">
+  <div style="width:100%;max-width:${p.contentWidth||'900px'};text-align:${heroAlign};display:flex;flex-direction:column;align-items:${heroFlexAlign};margin:0 auto;">
+    <h1 style="font-size:clamp(28px,5vw,56px);font-weight:800;margin:0 0 16px;">${p.heading||'Welcome'}</h1>
+    <p style="font-size:clamp(14px,2vw,20px);margin:0 0 32px;opacity:0.85;">${p.subheading||''}</p>
+    ${p.buttonText ? `<a href="${p.buttonHref||'#'}" style="background:${p.btnBg||'#fff'};color:${p.btnColor||'#7c6af7'};padding:14px 32px;border-radius:6px;font-weight:600;font-size:16px;text-decoration:none;display:inline-block;">${p.buttonText}</a>` : ''}
+  </div>
 </section>`;
     }
     case 'heading': {
@@ -824,8 +1069,9 @@ function renderBlock(block, editing = false) {
     }
     case 'image': {
       const rounded = p.rounded ? 'border-radius:8px;' : '';
+      const imageAspect = p.aspectRatio ? `aspect-ratio:${p.aspectRatio};` : '';
       return `<div ${sel} style="padding:16px 24px;text-align:${p.align||'center'};">
-  ${p.src ? `<img src="${p.src}" alt="${p.alt||''}" style="max-width:${p.width||'100%'};${rounded}display:inline-block;">` : `<div style="background:#e0e0e0;height:200px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#888;">Click to set image URL</div>`}
+  ${p.src ? `<img src="${p.src}" alt="${p.alt||''}" style="width:${p.width||'100%'};height:${p.height||'auto'};object-fit:${p.fit||'contain'};${imageAspect}${rounded}display:inline-block;">` : `<div style="background:#e0e0e0;height:200px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#888;">Click to set image URL</div>`}
   ${p.caption ? `<p style="font-size:13px;color:#888;margin-top:6px;">${p.caption}</p>` : ''}
 </div>`;
     }
@@ -860,7 +1106,7 @@ function renderBlock(block, editing = false) {
 </div>`;
     }
     case 'divider': {
-      return `<div ${sel} style="padding:0 24px;margin:${p.margin||'20px 0'};"><hr style="border:none;border-top:${p.thickness||'1px'} solid ${p.color||'#ddd'};"></div>`;
+      return `<div ${sel} style="padding:10px 24px;margin:${p.margin||'20px 0'};"><hr style="border:none;border-top:${p.thickness||'1px'} solid ${p.color||'#ddd'};"></div>`;
     }
     case 'spacer': {
       return `<div ${sel} style="height:${p.height||'40px'};"></div>`;
@@ -915,7 +1161,7 @@ function renderBlock(block, editing = false) {
       <div><label style="display:block;margin-bottom:4px;font-weight:500;">Name</label><input type="text" placeholder="Your name" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:14px;"></div>
       <div><label style="display:block;margin-bottom:4px;font-weight:500;">Email</label><input type="email" placeholder="your@email.com" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:14px;"></div>
       <div><label style="display:block;margin-bottom:4px;font-weight:500;">Message</label><textarea placeholder="Your message..." rows="5" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:14px;resize:vertical;"></textarea></div>
-      <button type="submit" style="background:#7c6af7;color:#fff;padding:12px;border-radius:6px;font-weight:600;font-size:15px;border:none;cursor:pointer;">${p.submitText||'Send Message'}</button>
+      <button type="submit" style="background:${p.btnBg||'#7c6af7'};color:${p.btnColor||'#fff'};padding:12px;border-radius:6px;font-weight:600;font-size:15px;border:none;cursor:pointer;">${p.submitText||'Send Message'}</button>
     </form>
   </div>
 </section>`;
@@ -962,11 +1208,13 @@ function resolveImageSrcs(html, imageMap) {
 
 function compilePageHTML(projectData, pageIndex, minimal = false, imageMap = null) {
   const page = projectData.pages[pageIndex];
-  let blocksHTML = (page.blocks||[]).map(b => renderBlock(b, false)).join('\n');
+  let blocksHTML = (page.blocks||[]).map(b => renderBlock(b, false, projectData)).join('\n');
   if (imageMap) blocksHTML = resolveImageSrcs(blocksHTML, imageMap);
   const titleOverride = (page.meta||{}).titleOverride;
   const title = titleOverride || (page.name + (projectData.name ? ' \u2014 ' + projectData.name : ''));
   const metaTags = buildMetaTags(projectData, page);
+
+  const brandCSS = buildBrandCSS(projectData);
 
   if (minimal) {
     return `<!DOCTYPE html>
@@ -976,7 +1224,7 @@ function compilePageHTML(projectData, pageIndex, minimal = false, imageMap = nul
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>${title}</title>
 ${metaTags}
-<style>${projectData.globalCSS||''}</style>
+<style>${brandCSS}${projectData.globalCSS||''}</style>
 </head>
 <body>
 ${blocksHTML}
@@ -992,6 +1240,7 @@ ${blocksHTML}
 <title>${title}</title>
 ${metaTags}
 <style>
+${brandCSS}
 ${projectData.globalCSS||''}
 </style>
 </head>
@@ -1012,10 +1261,12 @@ function showView(v) {
   document.getElementById('view-'+v).classList.add('active');
 }
 function showDashboard() {
+  document.body.classList.remove('editor-mode');
   renderDashboard();
   showView('dashboard');
 }
 function showSettings() {
+  document.body.classList.remove('editor-mode');
   loadSettingsForm();
   updateStorageInfo();
   showView('settings');
@@ -1040,6 +1291,12 @@ function renderDashboard() {
   newCard.onclick = openNewProjectModal;
   grid.appendChild(newCard);
 
+  const uploadCard = document.createElement('button');
+  uploadCard.className = 'new-project-card';
+  uploadCard.innerHTML = '<span class="new-project-icon">⇪</span><span>Upload Existing Site</span><span class="text-sm text-muted" style="text-align:center;max-width:190px;">Use a ZIP exported from this sitebuilder with the included builder manifest.</span>';
+  uploadCard.onclick = triggerExistingSiteUpload;
+  grid.appendChild(uploadCard);
+
   STATE.projects.slice().reverse().forEach(p => {
     const card = document.createElement('div');
     card.className = 'project-card';
@@ -1047,8 +1304,11 @@ function renderDashboard() {
 
     // Thumbnail preview
     const pd = getProjectData(p.id);
-    const thumbHTML = compilePageHTML(pd, 0, true);
-    const thumbEncoded = `data:text/html;charset=utf-8,${encodeURIComponent(thumbHTML)}`;
+    let thumbEncoded = '';
+    try {
+      const thumbHTML = compilePageHTML(pd, 0, true);
+      thumbEncoded = `data:text/html;charset=utf-8,${encodeURIComponent(thumbHTML)}`;
+    } catch(e) { console.warn('Thumbnail failed for', p.id, e); }
 
     card.innerHTML = `
       <div class="project-thumb">
@@ -1075,17 +1335,45 @@ function renderDashboard() {
 // ============================================================
 function openNewProjectModal() {
   document.getElementById('new-project-name').value = '';
+  document.getElementById('new-project-brand-name').value = '';
+  document.getElementById('new-project-author').value = '';
+  document.getElementById('new-project-description').value = '';
+  document.getElementById('new-project-accent').value = '#7c6af7';
+  document.getElementById('new-project-page-bg').value = '#ffffff';
+  document.getElementById('new-project-section-bg').value = '#f8f8f8';
+  document.getElementById('new-project-text-dark').value = '#111111';
   document.getElementById('new-project-template').value = 'blank';
   openModal('modal-new-project');
   setTimeout(()=>document.getElementById('new-project-name').focus(),100);
 }
 
+function triggerExistingSiteUpload() {
+  const input = document.getElementById('existing-site-upload');
+  if (!input) return;
+  input.value = '';
+  input.click();
+}
+
 function createProject() {
   const name = document.getElementById('new-project-name').value.trim() || 'Untitled Site';
+  const brandName = document.getElementById('new-project-brand-name').value.trim() || name;
+  const author = document.getElementById('new-project-author').value.trim();
+  const description = document.getElementById('new-project-description').value.trim();
   const template = document.getElementById('new-project-template').value;
   const id = uid();
-  let data = createBlankProjectData(name);
+  const brandSetup = {
+    accent: document.getElementById('new-project-accent').value,
+    pageBg: document.getElementById('new-project-page-bg').value,
+    sectionBg: document.getElementById('new-project-section-bg').value,
+    textDark: document.getElementById('new-project-text-dark').value,
+    btnPrimary: document.getElementById('new-project-accent').value
+  };
+  let data = createBlankProjectData(name, { brandName, author, description, brand: brandSetup });
+  _brandContext = data.brand;
+  _projectNameContext = data.brandName;
   data = applyTemplate(data, template);
+  _brandContext = null;
+  _projectNameContext = '';
 
   const meta = { id, name, created: Date.now(), modified: Date.now() };
   STATE.projects.push(meta);
@@ -1094,6 +1382,77 @@ function createProject() {
 
   closeModal('modal-new-project');
   toast('Website created!', 'success');
+  openEditor(id);
+}
+
+async function uploadExistingSite(input) {
+  const file = input.files && input.files[0];
+  input.value = '';
+  if (!file) return;
+  try {
+    await importProjectZip(file);
+  } catch (e) {
+    toast(e.message || 'Import failed', 'error');
+  }
+}
+
+function getZipFolderPrefix(path) {
+  const idx = path.lastIndexOf('/');
+  return idx >= 0 ? path.slice(0, idx + 1) : '';
+}
+
+async function importProjectZip(file) {
+  toast('Importing site...', 'info');
+  const zip = await JSZip.loadAsync(file);
+  const manifestPath = Object.keys(zip.files).find(path => path.endsWith(BUILDER_MANIFEST_FILE));
+  if (!manifestPath) {
+    throw new Error('This ZIP is not in the Functional Websites builder format. Upload a ZIP exported from this sitebuilder.');
+  }
+
+  const manifestRaw = await zip.file(manifestPath).async('string');
+  let manifest;
+  try {
+    manifest = JSON.parse(manifestRaw);
+  } catch (e) {
+    throw new Error('The builder manifest could not be read from this ZIP.');
+  }
+
+  const basePath = getZipFolderPrefix(manifestPath);
+  const projectFileName = manifest.projectDataFile || BUILDER_PROJECT_FILE;
+  const projectPath = basePath + projectFileName;
+  const projectEntry = zip.file(projectPath);
+  if (!projectEntry) {
+    throw new Error('This ZIP is missing the builder project data needed to continue editing.');
+  }
+
+  let importedData;
+  try {
+    importedData = JSON.parse(await projectEntry.async('string'));
+  } catch (e) {
+    throw new Error('The builder project data file is invalid.');
+  }
+
+  if (!importedData || !Array.isArray(importedData.pages)) {
+    throw new Error('The uploaded project data is incomplete and cannot be imported.');
+  }
+
+  const id = uid();
+  const importedName = importedData.name || manifest.siteName || file.name.replace(/\.zip$/i, '') || 'Imported Site';
+  const now = Date.now();
+  const normalizedData = JSON.parse(JSON.stringify(importedData));
+  normalizedData.name = importedName;
+  if (!normalizedData.brandName) normalizedData.brandName = normalizedData.name;
+  if (!normalizedData.brand) normalizedData.brand = {};
+  if (!normalizedData.meta) normalizedData.meta = {};
+  if (!normalizedData.images) normalizedData.images = [];
+  if (!normalizedData.templates) normalizedData.templates = [];
+  if (!normalizedData.navbars) normalizedData.navbars = {};
+
+  STATE.projects.push({ id, name: importedName, created: now, modified: now });
+  saveProjectsMeta();
+  saveProjectData(id, normalizedData);
+  renderDashboard();
+  toast(`Imported "${importedName}"`, 'success');
   openEditor(id);
 }
 
@@ -1158,18 +1517,22 @@ function duplicateProject(id) {
 let _projectData = null;
 
 function openEditor(id) {
+  document.body.classList.add('editor-mode');
   STATE.currentProjectId = id;
   STATE.currentPageIndex = 0;
   STATE.selectedBlockId = null;
   _projectData = getProjectData(id);
+  _resetUndo();
 
   document.getElementById('editor-project-name').textContent = _projectData.name;
 
   // Start in visual mode
   switchEditorMode('visual');
   renderPagesList();
+  renderLayoutList();
   renderCanvas();
   renderProps();
+  renderTemplatesSection();
   showView('editor');
 }
 
@@ -1197,9 +1560,15 @@ function renderPagesList() {
     item.className = 'page-item' + (i === STATE.currentPageIndex ? ' active' : '');
     item.innerHTML = `<span style="font-size:14px;">📄</span><span class="page-item-name">${page.name}</span>`;
     item.onclick = () => switchPage(i);
+    const ren = document.createElement('button');
+    ren.className = 'btn-icon page-item-action';
+    ren.innerHTML = '✎';
+    ren.title = 'Rename page';
+    ren.onclick = (e) => { e.stopPropagation(); renamePage(i); };
+    item.appendChild(ren);
     if (i > 0) {
       const del = document.createElement('button');
-      del.className = 'btn-icon';
+      del.className = 'btn-icon page-item-action';
       del.innerHTML = '×';
       del.title = 'Delete page';
       del.onclick = (e) => { e.stopPropagation(); deletePage(i); };
@@ -1215,7 +1584,9 @@ function switchPage(i) {
   STATE.currentPageIndex = i;
   STATE.selectedBlockId = null;
   renderPagesList();
+  renderLayoutList();
   renderCanvas();
+  renderProps();
   if (STATE.currentMode === 'code') refreshCodeEditor();
 }
 
@@ -1235,12 +1606,82 @@ function confirmAddPage() {
   renderCanvas();
 }
 
+function renamePage(i) {
+  const page = _projectData.pages[i];
+  const name = prompt('Page name:', page.name);
+  if (!name || name.trim() === page.name) return;
+  page.name = name.trim();
+  page.slug = name.trim().toLowerCase().replace(/[^a-z0-9]/g,'-').replace(/-+/g,'-') || 'page';
+  pushUndoDebounced();
+  renderPagesList();
+  renderCanvas();
+}
+
 function deletePage(i) {
   if (_projectData.pages.length <= 1) { toast('Cannot delete the only page', 'error'); return; }
   _projectData.pages.splice(i, 1);
   if (STATE.currentPageIndex >= _projectData.pages.length) STATE.currentPageIndex = _projectData.pages.length - 1;
   renderPagesList();
+  renderLayoutList();
   renderCanvas();
+}
+
+function switchLeftTab(tab) {
+  document.getElementById('left-tab-add').classList.toggle('active', tab === 'add');
+  document.getElementById('left-tab-layout').classList.toggle('active', tab === 'layout');
+  document.getElementById('left-add-panel').classList.toggle('active', tab === 'add');
+  document.getElementById('left-layout-panel').classList.toggle('active', tab === 'layout');
+  if (tab === 'layout') renderLayoutList();
+}
+
+function getBlockIcon(type) {
+  return {
+    nav: '☰',
+    hero: '★',
+    heading: 'H',
+    text: '¶',
+    image: '🖼',
+    button: '□',
+    section: '▭',
+    columns2: '⊞',
+    columns3: '⊟',
+    divider: '─',
+    spacer: '↕',
+    cards: '▦',
+    features: '✦',
+    cta: '⚡',
+    footer: '▬',
+    form: '✉',
+    html: '</>'
+  }[type] || '•';
+}
+
+function renderLayoutList() {
+  const list = document.getElementById('layout-list');
+  if (!list || !_projectData) return;
+  const page = _projectData.pages[STATE.currentPageIndex];
+  const blocks = page?.blocks || [];
+
+  if (!blocks.length) {
+    list.innerHTML = `<div class="text-muted text-sm" style="padding:10px 12px;">No blocks on this page yet.</div>`;
+    return;
+  }
+
+  list.innerHTML = blocks.map((block, index) => {
+    const slug = block.props?.anchor ? `#${block.props.anchor}` : 'No anchor';
+    return `<div class="layout-item${STATE.selectedBlockId === block.id ? ' selected' : ''}" onclick="selectBlock('${block.id}')">
+      <div class="layout-item-icon">${getBlockIcon(block.type)}</div>
+      <div class="layout-item-info">
+        <div class="layout-item-type">${index + 1}. ${block.type}</div>
+        <div class="layout-item-slug">${slug}</div>
+      </div>
+      <div class="layout-item-actions">
+        <button class="btn-icon" onclick="event.stopPropagation();moveBlock('${block.id}',-1)" title="Move up">↑</button>
+        <button class="btn-icon" onclick="event.stopPropagation();moveBlock('${block.id}',1)" title="Move down">↓</button>
+        <button class="btn-icon" onclick="event.stopPropagation();removeBlock('${block.id}')" title="Delete">×</button>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 // ============================================================
@@ -1266,6 +1707,7 @@ body { margin: 0; font-family: 'Segoe UI', system-ui, sans-serif; cursor: defaul
 .block-controls { position: absolute; top: 4px; right: 4px; display: none; gap: 4px; z-index: 999; }
 .block-wrapper:hover .block-controls { display: flex; }
 .block-ctrl-btn { width: 26px; height: 26px; border-radius: 4px; background: #7c6af7; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 13px; cursor: pointer; border: none; }
+${buildBrandCSS(_projectData)}
 ${_projectData.globalCSS||''}
 </style>
 </head>
@@ -1303,6 +1745,24 @@ function renderCanvas() {
 // ============================================================
 function isMobile() { return window.innerWidth <= 767; }
 
+function updateBackButton() {
+  const backBtn = document.getElementById('editor-back-btn');
+  if (!backBtn || !STATE.currentProjectId) return;
+
+  const isMob = isMobile();
+  const inNonCanvasTab = isMob && STATE.mobileTab && STATE.mobileTab !== 'canvas';
+
+  if (inNonCanvasTab) {
+    backBtn.innerHTML = '← Canvas';
+    backBtn.onclick = () => switchMobileTab('canvas');
+    backBtn.title = 'Back to Canvas';
+  } else {
+    backBtn.innerHTML = '← <span class="d-only">Dashboard</span>';
+    backBtn.onclick = exitEditor;
+    backBtn.title = 'Back to Dashboard';
+  }
+}
+
 function switchMobileTab(tab) {
   STATE.mobileTab = tab;
   const left   = document.querySelector('.editor-left');
@@ -1317,6 +1777,7 @@ function switchMobileTab(tab) {
   if (tab === 'props') { right.classList.add('mob-active'); center.classList.add('mob-hidden'); }
 
   document.querySelectorAll('.mob-tab').forEach(b => b.classList.toggle('active', b.dataset.mob === tab));
+  updateBackButton();
 }
 
 function toggleMobileOverflow(e) {
@@ -1338,6 +1799,7 @@ window.deselectBlock = function(e) {
     doc.querySelectorAll('.block-wrapper').forEach(el => el.classList.remove('selected'));
   } catch(e) {}
   renderProps();
+  renderLayoutList();
   // On mobile return to canvas tab after deselecting
   if (isMobile() && STATE.mobileTab === 'props') switchMobileTab('canvas');
 };
@@ -1353,11 +1815,13 @@ window.selectBlock = function(id) {
     if (sel) sel.classList.add('selected');
   } catch(e) {}
   renderProps();
+  renderLayoutList();
   // On mobile, automatically jump to the props panel
   if (isMobile()) switchMobileTab('props');
 };
 
 window.moveBlock = function(id, dir) {
+  pushUndo();
   const page = _projectData.pages[STATE.currentPageIndex];
   const idx = page.blocks.findIndex(b=>b.id===id);
   if (idx < 0) return;
@@ -1367,22 +1831,28 @@ window.moveBlock = function(id, dir) {
   page.blocks[idx] = page.blocks[newIdx];
   page.blocks[newIdx] = tmp;
   renderCanvas();
+  renderLayoutList();
+  renderProps();
 };
 
 window.removeBlock = function(id) {
+  pushUndo();
   const page = _projectData.pages[STATE.currentPageIndex];
   page.blocks = page.blocks.filter(b=>b.id!==id);
   if (STATE.selectedBlockId === id) STATE.selectedBlockId = null;
   renderCanvas();
+  renderLayoutList();
   renderProps();
 };
 
 function addBlock(type) {
+  pushUndo();
   const block = mkBlock(type);
   const page = _projectData.pages[STATE.currentPageIndex];
   page.blocks.push(block);
   STATE.selectedBlockId = block.id;
   renderCanvas();
+  renderLayoutList();
   renderProps();
   // On mobile: go to canvas to see the new block, then select it
   if (isMobile()) switchMobileTab('canvas');
@@ -1415,9 +1885,10 @@ function buildSitePropsHTML() {
   const pm = page.meta || {};
   const sm = _projectData.meta || {};
 
-  let html = `<div class="props-tabs">
+  let html = `<div class="props-tabs" style="position:relative;">
     <button class="props-tab-btn ${tab==='page'?'active':''}" onclick="switchPropsTab('page')">Page</button>
     <button class="props-tab-btn ${tab==='site'?'active':''}" onclick="switchPropsTab('site')">Site</button>
+    <button class="props-tab-btn m-only" style="margin-left:auto;font-size:11px;" onclick="switchMobileTab('canvas')">Canvas →</button>
   </div>`;
 
   if (tab === 'page') {
@@ -1443,47 +1914,136 @@ function buildSitePropsHTML() {
         </select>
       </div>
     </div>
-    <div class="props-section">
-      <div class="props-section-title">Global CSS</div>
-      <textarea class="input" rows="8" style="font-family:monospace;font-size:11px;" oninput="updateGlobalCSS(this.value)">${(_projectData.globalCSS||'').replace(/</g,'&lt;')}</textarea>
-    </div>
-    <div class="props-section">
-      <div class="props-section-title">Global JS</div>
-      <textarea class="input" rows="6" style="font-family:monospace;font-size:11px;" oninput="updateGlobalJS(this.value)">${(_projectData.globalJS||'').replace(/</g,'&lt;')}</textarea>
-    </div>`;
+`;
+    // Brand colors
+    const br = _projectData.brand || {};
+    html += `<div class="props-section">
+      <div class="props-section-title" style="margin-bottom:6px;">Brand Colors</div>
+      <div style="font-size:11px;color:var(--text2);margin-bottom:10px;">Auto-injected as CSS variables on every page. Also appear as quick swatches in all color pickers.</div>`;
+    BRAND_COLORS.forEach(c => {
+      const val = br[c.key] || c.default;
+      const swId  = `brnd_sw_${c.key}`;
+      const cpId  = `brnd_cp_${c.key}`;
+      const txtId = `brnd_txt_${c.key}`;
+      html += `<div class="field">
+        <label class="label">${c.label} <span style="font-size:10px;opacity:.55;">${c.cssVar}</span></label>
+        <div class="color-input-wrap">
+          <div style="position:relative;flex-shrink:0;">
+            <div id="${swId}" class="color-swatch" style="background:${val}"></div>
+            <input type="color" id="${cpId}" value="${val}" style="opacity:0;position:absolute;inset:0;width:100%;height:100%;cursor:pointer;border:none;padding:0;"
+              oninput="updateBrandColor('${c.key}',this.value);syncColor('${swId}','${txtId}',this.value)">
+          </div>
+          <input class="input" type="text" id="${txtId}" value="${val}"
+            oninput="updateBrandColor('${c.key}',this.value);syncColor('${swId}','${cpId}',this.value)" style="flex:1;">
+        </div>
+      </div>`;
+    });
+    html += `</div>
+    <details class="props-advanced" style="margin-top:4px;border:1px solid var(--border);border-radius:6px;overflow:hidden;">
+      <summary style="padding:8px 12px;cursor:pointer;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text2);background:var(--bg3);user-select:none;">
+        ⚙ Global CSS &amp; JS
+      </summary>
+      <div style="padding:12px;">
+        <div class="field">
+          <label class="label">Global CSS</label>
+          <textarea class="input" rows="8" style="font-family:monospace;font-size:11px;" oninput="updateGlobalCSS(this.value)">${(_projectData.globalCSS||'').replace(/</g,'&lt;')}</textarea>
+        </div>
+        <div class="field" style="margin-bottom:0;">
+          <label class="label">Global JS</label>
+          <textarea class="input" rows="6" style="font-family:monospace;font-size:11px;" oninput="updateGlobalJS(this.value)">${(_projectData.globalJS||'').replace(/</g,'&lt;')}</textarea>
+        </div>
+      </div>
+    </details>`;
   }
 
   return html;
 }
 
+// ============================================================
+// BRAND COLORS
+// ============================================================
+function buildBrandCSS(projectData) {
+  const b = projectData.brand || {};
+  const vars = BRAND_COLORS
+    .filter(c => b[c.key])
+    .map(c => `  ${c.cssVar}: ${b[c.key]};`)
+    .join('\n');
+  return vars ? `:root {\n${vars}\n}` : '';
+}
+
+function buildBrandSwatches(blockId, key) {
+  const b = _projectData.brand || {};
+  const swatches = BRAND_COLORS
+    .filter(c => b[c.key])
+    .map(c => `<div title="${c.label}: ${b[c.key]}" style="width:14px;height:14px;border-radius:3px;background:${b[c.key]};border:1px solid rgba(0,0,0,.2);cursor:pointer;flex-shrink:0;" onclick="setColorProp('${blockId}','${key}','${b[c.key]}','${c.key}')"></div>`)
+    .join('');
+  return swatches ? `<div style="display:flex;flex-wrap:wrap;gap:3px;margin-bottom:5px;">${swatches}</div>` : '';
+}
+
+function updateBrandColor(key, value) {
+  pushUndoDebounced();
+  if (!_projectData.brand) _projectData.brand = {};
+  _projectData.brand[key] = value;
+  // Propagate to all blocks on all pages that are linked to this brand color
+  (_projectData.pages || []).forEach(page => {
+    (page.blocks || []).forEach(block => {
+      if (!block.brandLinks) return;
+      Object.entries(block.brandLinks).forEach(([propKey, brandKey]) => {
+        if (brandKey === key) block.props[propKey] = value;
+      });
+    });
+  });
+  renderCanvas();
+}
+
 function updatePageMeta(key, value) {
+  pushUndoDebounced();
   const page = _projectData.pages[STATE.currentPageIndex];
   if (!page.meta) page.meta = {};
   page.meta[key] = value;
 }
 
 function updateSiteMeta(key, value) {
+  pushUndoDebounced();
   if (!_projectData.meta) _projectData.meta = {};
   _projectData.meta[key] = value;
+}
+
+function escapeHtmlForTextarea(str = '') {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+function getBlockRawHTML(block) {
+  return renderBlock(block, false, _projectData);
 }
 
 function buildPropsForm(block) {
   const p = block.props;
   const type = block.type;
 
-  let html = `<div style="margin:-12px -12px 12px;padding:8px 12px;border-bottom:1px solid var(--border);">
-    <button class="btn btn-ghost btn-sm" style="font-size:11px;padding:3px 8px;" onclick="deselectBlock()">← Page / Site</button>
-  </div>
-  <div class="props-section"><div class="props-section-title">${type.charAt(0).toUpperCase()+type.slice(1)}</div>`;
+  let html = `<div class="props-section"><div class="props-section-title" style="display:flex;align-items:center;justify-content:space-between;">${type.charAt(0).toUpperCase()+type.slice(1)}<button class="btn btn-ghost btn-sm d-only" style="font-size:11px;padding:2px 8px;color:var(--text2);" onclick="deselectBlock()" title="Back to Page / Site settings">← Page / Site</button></div>`;
 
   const field = (label, key, inputType = 'text', extra = '') => {
     if (inputType === 'color') {
+      const cpId  = `cp_${key}_${block.id}`;
+      const txtId = `cptxt_${key}_${block.id}`;
+      const swId  = `cpsw_${key}_${block.id}`;
+      const cur   = p[key] || '#ffffff';
+      const brandSwatches = buildBrandSwatches(block.id, key);
       return `<div class="field">
         <label class="label">${label}</label>
+        ${brandSwatches}
         <div class="color-input-wrap">
-          <div class="color-swatch" style="background:${p[key]||'#ffffff'}" onclick="document.getElementById('cp_${key}_${block.id}').click()"></div>
-          <input type="color" id="cp_${key}_${block.id}" value="${p[key]||'#ffffff'}" style="opacity:0;position:absolute;pointer-events:none;" oninput="updateProp('${block.id}','${key}',this.value)">
-          <input class="input" type="text" value="${p[key]||''}" oninput="updateProp('${block.id}','${key}',this.value);document.querySelector('.color-swatch[onclick*=cp_${key}_${block.id}]').style.background=this.value" style="flex:1;">
+          <div style="position:relative;flex-shrink:0;">
+            <div id="${swId}" class="color-swatch" style="background:${cur}"></div>
+            <input type="color" id="${cpId}" value="${cur}" style="opacity:0;position:absolute;inset:0;width:100%;height:100%;cursor:pointer;border:none;padding:0;"
+              oninput="updateProp('${block.id}','${key}',this.value);syncColor('${swId}','${txtId}',this.value)">
+          </div>
+          <input class="input" type="text" id="${txtId}" value="${cur}"
+            oninput="updateProp('${block.id}','${key}',this.value);syncColor('${swId}','${cpId}',this.value)" style="flex:1;">
         </div>
       </div>`;
     }
@@ -1497,18 +2057,98 @@ function buildPropsForm(block) {
   };
 
   switch(type) {
-    case 'nav':
-      html += field('Brand Name', 'brand');
-      html += field('Links (comma separated)', 'links');
-      html += field('Background', 'bgColor', 'color');
-      html += field('Text Color', 'textColor', 'color');
-      html += field('Link Color', 'linkColor', 'color');
+    case 'nav': {
+      // Legacy blocks without navbarId
+      if (!p.navbarId) {
+        html += field('Brand Name', 'brand');
+        html += field('Links (comma separated)', 'links');
+        html += field('Background', 'bgColor', 'color');
+        html += field('Text Color', 'textColor', 'color');
+        html += field('Link Color', 'linkColor', 'color');
+        break;
+      }
+      ensureNavbar(p.navbarId);
+      const nc = _projectData.navbars[p.navbarId];
+      const navId = p.navbarId;
+      const allNavIds = Object.keys(_projectData.navbars || {});
+
+      // Variant selector
+      html += `<div class="field"><label class="label">Navbar Variant <span class="text-muted" style="font-size:10px;">— changes apply to all pages using this variant</span></label>
+        <div style="display:flex;gap:6px;">
+          <select class="input" onchange="switchNavVariant('${block.id}',this.value)" style="flex:1;">
+            ${allNavIds.map(nid => `<option value="${nid}" ${nid===navId?'selected':''}>${(_projectData.navbars[nid].name||nid)}</option>`).join('')}
+          </select>
+          <button class="btn btn-secondary btn-sm" onclick="createNavVariant('${block.id}')">+ New</button>
+        </div>
+      </div>`;
+
+      // Brand name
+      html += `<div class="field"><label class="label">Brand Name</label>
+        <input class="input" type="text" value="${(nc.brand||'').replace(/"/g,'&quot;')}" oninput="updateNavConfig('${navId}','brand',this.value)">
+      </div>`;
+
+      // Color fields wired to updateNavConfig
+      const navColorField = (label, key) => {
+        const cpId  = `ncp_${key}_${navId}`;
+        const txtId = `ncptxt_${key}_${navId}`;
+        const swId  = `ncpsw_${key}_${navId}`;
+        const cur   = nc[key] || '#ffffff';
+        return `<div class="field"><label class="label">${label}</label>
+          ${buildNavBrandSwatches(navId, key)}
+          <div class="color-input-wrap">
+            <div style="position:relative;flex-shrink:0;">
+              <div id="${swId}" class="color-swatch" style="background:${cur}"></div>
+              <input type="color" id="${cpId}" value="${cur}" style="opacity:0;position:absolute;inset:0;width:100%;height:100%;cursor:pointer;border:none;padding:0;"
+                oninput="updateNavConfig('${navId}','${key}',this.value);syncColor('${swId}','${txtId}',this.value)">
+            </div>
+            <input class="input" type="text" id="${txtId}" value="${cur}"
+              oninput="updateNavConfig('${navId}','${key}',this.value);syncColor('${swId}','${cpId}',this.value)" style="flex:1;">
+          </div>
+        </div>`;
+      };
+      html += navColorField('Background Color', 'bgColor');
+      html += navColorField('Text Color', 'textColor');
+      html += navColorField('Link Color', 'linkColor');
+
+      // Page links
+      html += `<div class="props-section-title" style="margin-top:4px;">Page Links</div>`;
+      (_projectData.pages||[]).forEach(pg => {
+        const checked = nc.pageLinks === 'all' || (Array.isArray(nc.pageLinks) && nc.pageLinks.includes(pg.id));
+        html += `<label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:4px 0;" class="label">
+          <input type="checkbox" ${checked?'checked':''} onchange="toggleNavPage('${navId}','${pg.id}')">
+          ${pg.name}
+        </label>`;
+      });
+
+      // Custom links
+      html += `<div class="props-section-title" style="margin-top:12px;">Custom Links</div>`;
+      (nc.customLinks||[]).forEach(lnk => {
+        html += `<div style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:8px;margin-bottom:6px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+            <span style="font-size:11px;font-weight:600;color:var(--text2);">${lnk.label||'Link'}</span>
+            <button class="btn btn-danger btn-sm" style="padding:2px 8px;" onclick="removeNavCustomLink('${navId}','${lnk.id}')">× Remove</button>
+          </div>
+          <div class="field"><label class="label">Label</label>
+            <input class="input" type="text" value="${(lnk.label||'').replace(/"/g,'&quot;')}" oninput="updateNavCustomLink('${navId}','${lnk.id}','label',this.value)">
+          </div>
+          <div class="field" style="margin-bottom:0;"><label class="label">URL</label>
+            <input class="input" type="text" value="${(lnk.href||'').replace(/"/g,'&quot;')}" oninput="updateNavCustomLink('${navId}','${lnk.id}','href',this.value)">
+          </div>
+        </div>`;
+      });
+      html += `<button class="btn btn-secondary btn-sm" style="width:100%;margin-top:4px;" onclick="addNavCustomLink('${navId}')">+ Add Custom Link</button>`;
       break;
+    }
     case 'hero':
       html += field('Heading', 'heading');
       html += field('Subheading', 'subheading');
       html += field('Button Text', 'buttonText');
       html += field('Button Link', 'buttonHref');
+      html += field('Minimum Height', 'minHeight');
+      html += field('Content Width', 'contentWidth');
+      html += `<div class="field"><label class="label">Content Align</label><select class="input" onchange="updateProp('${block.id}','align',this.value)">
+        ${['left','center','right'].map(v=>`<option value="${v}" ${(p.align||'center')===v?'selected':''}>${v}</option>`).join('')}
+      </select></div>`;
       html += field('Background Color', 'bgColor', 'color');
       html += field('Text Color', 'textColor', 'color');
       html += field('Button Background', 'btnBg', 'color');
@@ -1536,6 +2176,11 @@ function buildPropsForm(block) {
       html += `<div class="field"><button class="btn btn-secondary btn-sm" style="width:100%;" onclick="openImageLibrary('${block.id}')">🖼 Browse Image Library</button></div>`;
       html += field('Alt Text', 'alt');
       html += field('Width', 'width');
+      html += field('Height', 'height');
+      html += field('Aspect Ratio', 'aspectRatio');
+      html += `<div class="field"><label class="label">Object Fit</label><select class="input" onchange="updateProp('${block.id}','fit',this.value)">
+        ${['contain','cover','fill','scale-down','none'].map(v=>`<option value="${v}" ${(p.fit||'contain')===v?'selected':''}>${v}</option>`).join('')}
+      </select></div>`;
       html += field('Caption', 'caption');
       html += `<div class="field"><label class="label">Align</label><select class="input" onchange="updateProp('${block.id}','align',this.value)">
         ${['left','center','right'].map(v=>`<option value="${v}" ${p.align===v?'selected':''}>${v}</option>`).join('')}
@@ -1599,6 +2244,8 @@ function buildPropsForm(block) {
       html += field('Submit Button Text', 'submitText');
       html += field('Form Action URL', 'action');
       html += field('Background Color', 'bgColor', 'color');
+      html += field('Button Color', 'btnBg', 'color');
+      html += field('Button Text Color', 'btnColor', 'color');
       break;
     case 'html':
       html += `<div class="field"><label class="label">HTML Code</label><textarea class="input" rows="10" style="font-family:monospace;font-size:12px;" oninput="updateProp('${block.id}','code',this.value)">${(p.code||'').replace(/</g,'&lt;')}</textarea></div>`;
@@ -1607,12 +2254,41 @@ function buildPropsForm(block) {
       html += field('Section Title', 'title');
       html += field('Background Color', 'bgColor', 'color');
       html += field('Padding', 'padding');
-      html += `<div class="field"><label class="label">Cards (JSON)</label><textarea class="input" rows="8" style="font-family:monospace;font-size:11px;" oninput="updateCardsJSON('${block.id}','cards',this.value)">${JSON.stringify(p.cards||[], null, 2)}</textarea></div>`;
+      html += `<div class="field"><label class="label">Cards</label>`;
+      (p.cards||[]).forEach((c,i) => {
+        html += `<div style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:10px;margin-bottom:8px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <span style="font-size:11px;font-weight:600;color:var(--text2);">Card ${i+1}</span>
+            <button class="btn btn-danger btn-sm" style="padding:2px 8px;font-size:11px;" onclick="removeItem('${block.id}','cards',${i})">× Remove</button>
+          </div>
+          <div class="field"><label class="label">Title</label><input class="input" type="text" value="${(c.title||'').replace(/"/g,'&quot;')}" oninput="updateItem('${block.id}','cards',${i},'title',this.value)"></div>
+          <div class="field"><label class="label">Description</label><textarea class="input" rows="2" oninput="updateItem('${block.id}','cards',${i},'desc',this.value)">${c.desc||''}</textarea></div>
+          <div class="field"><label class="label">Image</label>
+            <div style="display:flex;gap:6px;">
+              <input class="input" type="text" value="${(c.img||'').replace(/"/g,'&quot;')}" placeholder="https://… or use library" oninput="updateItem('${block.id}','cards',${i},'img',this.value)" style="flex:1;">
+              <button class="btn btn-secondary btn-sm" onclick="openImageLibrary(null,(url)=>{updateItem('${block.id}','cards',${i},'img',url)})">🖼</button>
+            </div>
+          </div>
+        </div>`;
+      });
+      html += `<button class="btn btn-secondary btn-sm" style="width:100%;" onclick="addItem('${block.id}','cards',{title:'Card Title',desc:'Description here.',img:''})">+ Add Card</button></div>`;
       break;
     case 'features':
       html += field('Section Title', 'title');
       html += field('Background Color', 'bgColor', 'color');
-      html += `<div class="field"><label class="label">Features (JSON)</label><textarea class="input" rows="8" style="font-family:monospace;font-size:11px;" oninput="updateCardsJSON('${block.id}','features',this.value)">${JSON.stringify(p.features||[], null, 2)}</textarea></div>`;
+      html += `<div class="field"><label class="label">Features</label>`;
+      (p.features||[]).forEach((f,i) => {
+        html += `<div style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:10px;margin-bottom:8px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <span style="font-size:11px;font-weight:600;color:var(--text2);">Feature ${i+1}</span>
+            <button class="btn btn-danger btn-sm" style="padding:2px 8px;font-size:11px;" onclick="removeItem('${block.id}','features',${i})">× Remove</button>
+          </div>
+          <div class="field"><label class="label">Icon (emoji)</label><input class="input" type="text" value="${(f.icon||'').replace(/"/g,'&quot;')}" style="max-width:80px;" oninput="updateItem('${block.id}','features',${i},'icon',this.value)"></div>
+          <div class="field"><label class="label">Title</label><input class="input" type="text" value="${(f.title||'').replace(/"/g,'&quot;')}" oninput="updateItem('${block.id}','features',${i},'title',this.value)"></div>
+          <div class="field"><label class="label">Description</label><textarea class="input" rows="2" oninput="updateItem('${block.id}','features',${i},'desc',this.value)">${f.desc||''}</textarea></div>
+        </div>`;
+      });
+      html += `<button class="btn btn-secondary btn-sm" style="width:100%;" onclick="addItem('${block.id}','features',{icon:'✦',title:'Feature',desc:'Describe this feature.'})">+ Add Feature</button></div>`;
       break;
     default:
       html += '<div class="text-muted text-sm">No properties available.</div>';
@@ -1620,60 +2296,251 @@ function buildPropsForm(block) {
 
   html += '</div>';
 
-  // Global CSS + JS at the bottom
-  html += `<div class="props-section" style="margin-top:16px;">
-    <div class="props-section-title" style="margin-bottom:8px;">Global CSS</div>
-    <textarea class="input" rows="5" style="font-family:monospace;font-size:11px;" oninput="updateGlobalCSS(this.value)">${(_projectData.globalCSS||'').replace(/</g,'&lt;')}</textarea>
-  </div>
-  <div class="props-section">
-    <div class="props-section-title" style="margin-bottom:8px;">Global JS</div>
-    <textarea class="input" rows="4" style="font-family:monospace;font-size:11px;" oninput="updateGlobalJS(this.value)">${(_projectData.globalJS||'').replace(/</g,'&lt;')}</textarea>
-  </div>`;
+  // Collapsible Advanced section
+  const rawBlockHtml = escapeHtmlForTextarea(getBlockRawHTML(block));
 
-  html += `<div style="margin-top:8px;">
+  html += `<details class="props-advanced" style="margin-top:12px;border:1px solid var(--border);border-radius:6px;overflow:hidden;">
+    <summary style="padding:8px 12px;cursor:pointer;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--text2);background:var(--bg3);user-select:none;">
+      ⚙ Advanced
+    </summary>
+    <div style="padding:12px;">
+      <div class="field">
+        <label class="label">Anchor / Slug <span style="font-size:10px;opacity:.6;">(HTML id attribute)</span></label>
+        <input class="input" type="text" value="${(p.anchor||'').replace(/"/g,'&quot;')}" placeholder="e.g. about, contact-section"
+          oninput="updateProp('${block.id}','anchor',this.value)">
+      </div>
+
+      <div class="field">
+        <label class="label">Block CSS <span style="font-size:10px;opacity:.6;">(injected before this block)</span></label>
+        <textarea class="input" rows="5" style="font-family:monospace;font-size:11px;"
+          oninput="updateProp('${block.id}','blockCSS',this.value)">${(p.blockCSS||'').replace(/</g,'&lt;')}</textarea>
+      </div>
+
+      <div class="field">
+        <label class="label">Block JS <span style="font-size:10px;opacity:.6;">(injected after this block)</span></label>
+        <textarea class="input" rows="4" style="font-family:monospace;font-size:11px;"
+          oninput="updateProp('${block.id}','blockJS',this.value)">${(p.blockJS||'').replace(/</g,'&lt;')}</textarea>
+      </div>
+
+      <div class="field" style="margin-bottom:0;">
+        <label class="label">Raw HTML Snippet <span style="font-size:10px;opacity:.6;">(read-only rendered output)</span></label>
+        <textarea
+          class="input"
+          rows="10"
+          readonly
+          spellcheck="false"
+          style="font-family:monospace;font-size:11px;opacity:.9;cursor:text;resize:vertical;"
+        >${rawBlockHtml}</textarea>
+      </div>
+    </div>
+  </details>`;
+
+  html += `<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">
+    <button class="btn btn-secondary btn-sm" onclick="saveBlockAsTemplate()" title="Save this block's configuration as a reusable template">💾 Save Template</button>
     <button class="btn btn-danger btn-sm" onclick="window.removeBlock('${block.id}')">🗑 Delete Block</button>
   </div>`;
 
   return html;
 }
 
+
+
 function updateProp(blockId, key, value) {
   const page = _projectData.pages[STATE.currentPageIndex];
   const block = page.blocks.find(b=>b.id===blockId);
   if (!block) return;
+  pushUndoDebounced();
   block.props[key] = value;
+  // Manual edit breaks the brand link for this prop
+  if (block.brandLinks && block.brandLinks[key]) delete block.brandLinks[key];
+  renderCanvas();
+  renderLayoutList();
+}
+
+// Keep color swatch + sibling input in sync without re-rendering the whole panel
+function syncColor(swId, sibId, value) {
+  const sw  = document.getElementById(swId);
+  const sib = document.getElementById(sibId);
+  if (sw)  sw.style.background = value;
+  if (sib) sib.value = value;
+}
+
+// Set a color prop programmatically (from brand swatch click)
+function setColorProp(blockId, key, value, brandKey) {
+  updateProp(blockId, key, value);
+  const swId  = `cpsw_${key}_${blockId}`;
+  const cpId  = `cp_${key}_${blockId}`;
+  const txtId = `cptxt_${key}_${blockId}`;
+  syncColor(swId, cpId, value);
+  syncColor(swId, txtId, value);
+  // Store brand link so this prop auto-updates when brand color changes
+  if (brandKey) {
+    const page = _projectData.pages[STATE.currentPageIndex];
+    const block = page?.blocks.find(b => b.id === blockId);
+    if (block) {
+      if (!block.brandLinks) block.brandLinks = {};
+      block.brandLinks[key] = brandKey;
+    }
+  }
+}
+
+function addItem(blockId, key, defaults) {
+  pushUndo();
+  const page = _projectData.pages[STATE.currentPageIndex];
+  const block = page.blocks.find(b=>b.id===blockId);
+  if (!block) return;
+  if (!block.props[key]) block.props[key] = [];
+  block.props[key].push(Object.assign({}, defaults));
+  renderCanvas();
+  renderProps();
+}
+
+function removeItem(blockId, key, index) {
+  pushUndo();
+  const page = _projectData.pages[STATE.currentPageIndex];
+  const block = page.blocks.find(b=>b.id===blockId);
+  if (!block || !block.props[key]) return;
+  block.props[key].splice(index, 1);
+  renderCanvas();
+  renderProps();
+}
+
+function updateItem(blockId, key, index, field, value) {
+  const page = _projectData.pages[STATE.currentPageIndex];
+  const block = page.blocks.find(b=>b.id===blockId);
+  if (!block || !block.props[key]) return;
+  block.props[key][index][field] = value;
   renderCanvas();
 }
 
-function updateCardsJSON(blockId, key, value) {
-  try {
-    const parsed = JSON.parse(value);
-    const page = _projectData.pages[STATE.currentPageIndex];
-    const block = page.blocks.find(b=>b.id===blockId);
-    if (!block) return;
-    block.props[key] = parsed;
-    renderCanvas();
-  } catch(e) { /* invalid JSON, ignore */ }
-}
-
 function updateGlobalCSS(value) {
+  pushUndoDebounced();
   _projectData.globalCSS = value;
   renderCanvas();
 }
 
 function updateGlobalJS(value) {
+  pushUndoDebounced();
   _projectData.globalJS = value;
+}
+
+// ============================================================
+// SHARED NAVBAR SYSTEM
+// ============================================================
+function ensureNavbar(navbarId) {
+  if (!_projectData.navbars) _projectData.navbars = {};
+  if (!_projectData.navbars[navbarId]) {
+    _projectData.navbars[navbarId] = {
+      name: navbarId === 'main' ? 'Default Nav' : navbarId,
+      brand: _projectData?.brandName || _projectData?.name || 'My Site',
+      bgColor: '#ffffff',
+      textColor: '#333333',
+      linkColor: '#333333',
+      pageLinks: 'all',
+      customLinks: []
+    };
+  }
+}
+
+function updateNavConfig(navbarId, key, value) {
+  pushUndoDebounced();
+  ensureNavbar(navbarId);
+  _projectData.navbars[navbarId][key] = value;
+  renderCanvas();
+}
+
+function createNavVariant(blockId) {
+  const name = prompt('Variant name (e.g. "Dark Nav"):');
+  if (!name || !name.trim()) return;
+  const newId = 'nav_' + uid();
+  const page = _projectData.pages[STATE.currentPageIndex];
+  const block = page.blocks.find(b => b.id === blockId);
+  const sourceId = block?.props?.navbarId || 'main';
+  ensureNavbar(sourceId);
+  pushUndo();
+  _projectData.navbars[newId] = JSON.parse(JSON.stringify(_projectData.navbars[sourceId]));
+  _projectData.navbars[newId].name = name.trim();
+  if (block) block.props.navbarId = newId;
+  renderCanvas();
+  renderProps();
+  toast(`Created variant "${name.trim()}"`, 'success');
+}
+
+function switchNavVariant(blockId, navbarId) {
+  const page = _projectData.pages[STATE.currentPageIndex];
+  const block = page.blocks.find(b => b.id === blockId);
+  if (!block) return;
+  pushUndo();
+  block.props.navbarId = navbarId;
+  renderCanvas();
+  renderProps();
+}
+
+function toggleNavPage(navbarId, pageId) {
+  pushUndoDebounced();
+  ensureNavbar(navbarId);
+  const nc = _projectData.navbars[navbarId];
+  if (nc.pageLinks === 'all') {
+    // Convert to explicit list with this page removed
+    nc.pageLinks = (_projectData.pages || []).map(pg => pg.id).filter(id => id !== pageId);
+  } else {
+    const arr = Array.isArray(nc.pageLinks) ? [...nc.pageLinks] : [];
+    const idx = arr.indexOf(pageId);
+    if (idx === -1) arr.push(pageId); else arr.splice(idx, 1);
+    // If all pages checked, simplify back to 'all'
+    nc.pageLinks = arr.length === (_projectData.pages||[]).length ? 'all' : arr;
+  }
+  renderCanvas();
+}
+
+function addNavCustomLink(navbarId) {
+  pushUndo();
+  ensureNavbar(navbarId);
+  const nc = _projectData.navbars[navbarId];
+  if (!nc.customLinks) nc.customLinks = [];
+  nc.customLinks.push({ id: uid(), label: 'Link', href: '#' });
+  renderProps();
+  renderCanvas();
+}
+
+function removeNavCustomLink(navbarId, linkId) {
+  pushUndo();
+  ensureNavbar(navbarId);
+  _projectData.navbars[navbarId].customLinks = (_projectData.navbars[navbarId].customLinks||[]).filter(l => l.id !== linkId);
+  renderCanvas();
+  renderProps();
+}
+
+function updateNavCustomLink(navbarId, linkId, field, value) {
+  pushUndoDebounced();
+  ensureNavbar(navbarId);
+  const link = (_projectData.navbars[navbarId].customLinks||[]).find(l => l.id === linkId);
+  if (link) { link[field] = value; renderCanvas(); }
+}
+
+function buildNavBrandSwatches(navbarId, key) {
+  const b = _projectData.brand || {};
+  const swId  = `ncpsw_${key}_${navbarId}`;
+  const cpId  = `ncp_${key}_${navbarId}`;
+  const txtId = `ncptxt_${key}_${navbarId}`;
+  const swatches = BRAND_COLORS
+    .filter(c => b[c.key])
+    .map(c => `<div title="${c.label}: ${b[c.key]}" style="width:14px;height:14px;border-radius:3px;background:${b[c.key]};border:1px solid rgba(0,0,0,.2);cursor:pointer;flex-shrink:0;"
+      onclick="updateNavConfig('${navbarId}','${key}','${b[c.key]}');syncColor('${swId}','${cpId}','${b[c.key]}');syncColor('${swId}','${txtId}','${b[c.key]}')"></div>`)
+    .join('');
+  return swatches ? `<div style="display:flex;flex-wrap:wrap;gap:3px;margin-bottom:5px;">${swatches}</div>` : '';
 }
 
 // ============================================================
 // IMAGE LIBRARY
 // ============================================================
-function openImageLibrary(blockId) {
+function openImageLibrary(blockId, callback) {
   STATE.imgLibTargetBlockId = blockId;
+  STATE.imgLibCallback = callback || null;
   STATE.imgLibSelectedId = null;
   renderImageLibraryGrid();
   const useBtn = document.getElementById('btn-img-lib-use');
-  useBtn.style.display = blockId ? 'inline-flex' : 'none';
+  useBtn.style.display = (blockId || callback) ? 'inline-flex' : 'none';
   openModal('modal-img-lib');
 }
 
@@ -1701,10 +2568,15 @@ function selectLibraryItem(id) {
 }
 
 function useSelectedLibraryImage() {
-  if (!STATE.imgLibSelectedId || !STATE.imgLibTargetBlockId) return;
+  if (!STATE.imgLibSelectedId) return;
   const img = (_projectData.images||[]).find(i => i.id === STATE.imgLibSelectedId);
   if (!img) return;
-  updateProp(STATE.imgLibTargetBlockId, 'src', img.dataURL);
+  if (STATE.imgLibCallback) {
+    STATE.imgLibCallback(img.dataURL);
+    STATE.imgLibCallback = null;
+  } else if (STATE.imgLibTargetBlockId) {
+    updateProp(STATE.imgLibTargetBlockId, 'src', img.dataURL);
+  }
   closeModal('modal-img-lib');
   renderProps();
 }
@@ -1783,6 +2655,63 @@ async function importImageFromUrl() {
 }
 
 // ============================================================
+// BLOCK TEMPLATES
+// ============================================================
+function saveBlockAsTemplate() {
+  if (!STATE.selectedBlockId) { toast('Select a block first', 'error'); return; }
+  const page = _projectData.pages[STATE.currentPageIndex];
+  const block = page.blocks.find(b=>b.id===STATE.selectedBlockId);
+  if (!block) return;
+  const name = prompt('Template name:', `${block.type} template`);
+  if (!name) return;
+  if (!_projectData.templates) _projectData.templates = [];
+  _projectData.templates.push({ id: uid(), name, block: JSON.parse(JSON.stringify(block)) });
+  pushUndoDebounced();
+  toast('Template saved!', 'success');
+  renderTemplatesSection();
+}
+
+function deleteTemplate(templateId) {
+  if (!confirm('Delete this template?')) return;
+  _projectData.templates = (_projectData.templates||[]).filter(t => t.id !== templateId);
+  pushUndoDebounced();
+  toast('Template deleted', 'success');
+  renderTemplatesSection();
+}
+
+function addTemplateBlock(templateId) {
+  const template = (_projectData.templates||[]).find(t => t.id === templateId);
+  if (!template) return;
+  const page = _projectData.pages[STATE.currentPageIndex];
+  const newBlock = JSON.parse(JSON.stringify(template.block));
+  newBlock.id = uid();
+  page.blocks.push(newBlock);
+  pushUndoDebounced();
+  renderCanvas();
+  renderTemplatesSection();
+  toast(`Added "${template.name}"`, 'success');
+}
+
+function renderTemplatesSection() {
+  const section = document.getElementById('templates-section');
+  const templates = _projectData.templates || [];
+  if (!templates.length) {
+    section.innerHTML = '';
+    return;
+  }
+  let html = `<div class="blocks-section">
+    <div class="blocks-section-label">Saved Templates</div>`;
+  templates.forEach(t => {
+    html += `<div class="block-btn" style="padding:6px 8px;display:flex;align-items:center;justify-content:space-between;gap:4px;">
+      <button style="flex:1;text-align:left;background:none;border:none;color:var(--text);cursor:pointer;padding:0;font-size:13px;" onclick="addTemplateBlock('${t.id}')">${t.name}</button>
+      <button class="btn-icon" style="padding:3px;" onclick="deleteTemplate('${t.id}')" title="Delete template">×</button>
+    </div>`;
+  });
+  html += `</div>`;
+  section.innerHTML = html;
+}
+
+// ============================================================
 // DEVICE / MODE
 // ============================================================
 function setDevice(d) {
@@ -1802,6 +2731,7 @@ function switchEditorMode(mode) {
     document.getElementById('mode-visual').style.display = 'flex';
     document.getElementById('mode-code').classList.add('hidden');
     renderCanvas();
+    renderProps(); // reflect any CSS/JS changes made in code editor
   } else {
     document.getElementById('mode-visual').style.display = 'none';
     document.getElementById('mode-code').classList.remove('hidden');
@@ -1829,25 +2759,26 @@ function refreshCodeEditor() {
 function switchCodeTab(tab) {
   STATE.currentCodeTab = tab;
   document.querySelectorAll('.code-tab').forEach(t => t.classList.toggle('active', t.dataset.file === tab));
+  const isHTML = tab === 'html';
+  document.getElementById('code-editor').readOnly = isHTML;
+  document.getElementById('code-editor').style.opacity = isHTML ? '0.6' : '1';
+  document.getElementById('html-tab-note').style.display = isHTML ? '' : 'none';
+  document.getElementById('btn-apply-code').style.display = isHTML ? 'none' : '';
   refreshCodeEditor();
 }
 
 function applyCode() {
   const tab = STATE.currentCodeTab;
+  if (tab === 'html') return; // read-only — editing HTML directly is disabled
+  pushUndo();
   const val = document.getElementById('code-editor').value;
-
   if (tab === 'css') {
     _projectData.globalCSS = val;
+    renderCanvas();
     toast('CSS applied', 'success');
   } else if (tab === 'js') {
     _projectData.globalJS = val;
     toast('JS applied', 'success');
-  } else if (tab === 'html') {
-    // Parse and store raw HTML in a special page.rawHTML field
-    const page = _projectData.pages[STATE.currentPageIndex];
-    page.rawHTML = val;
-    page.blocks = [mkBlock('html', { code: extractBodyContent(val) })];
-    toast('HTML applied', 'success');
   }
 }
 
@@ -1912,8 +2843,17 @@ async function downloadProjectZip(id) {
   folder.file('style.css', data.globalCSS || '');
   folder.file('script.js', data.globalJS || '');
 
+  folder.file(BUILDER_MANIFEST_FILE, JSON.stringify({
+    format: 'functional-websites-project',
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    siteName: data.name || meta?.name || 'website',
+    projectDataFile: BUILDER_PROJECT_FILE
+  }, null, 2));
+  folder.file(BUILDER_PROJECT_FILE, JSON.stringify(data, null, 2));
+
   // README
-  folder.file('README.md', `# ${data.name}\n\nBuilt with Functional Websites builder.\n\nTo host on GitHub Pages:\n1. Create a new GitHub repository\n2. Upload these files\n3. Go to Settings → Pages → select the main branch\n`);
+  folder.file('README.md', `# ${data.name}\n\nBuilt with Functional Websites builder.\n\nTo continue editing later:\n1. Keep this ZIP intact\n2. On the builder home page choose "Upload Existing Site"\n3. Upload this ZIP with the included builder manifest\n\nTo host on GitHub Pages:\n1. Create a new GitHub repository\n2. Upload these files\n3. Go to Settings → Pages → select the main branch\n`);
 
   const blob = await zip.generateAsync({type: 'blob'});
   const url = URL.createObjectURL(blob);
@@ -2406,10 +3346,21 @@ function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
       e.preventDefault();
       if (STATE.currentProjectId) saveProject();
     }
+    if ((e.ctrlKey||e.metaKey) && !e.shiftKey && e.key==='z') {
+      e.preventDefault();
+      if (STATE.currentProjectId) undo();
+    }
+    if ((e.ctrlKey||e.metaKey) && (e.shiftKey && e.key==='z' || e.key==='y')) {
+      e.preventDefault();
+      if (STATE.currentProjectId) redo();
+    }
     if (e.key==='Escape') {
       document.querySelectorAll('.modal-overlay:not(.hidden)').forEach(m => m.classList.add('hidden'));
     }
   });
+
+  // Update back button when window resizes (mobile/desktop toggle)
+  window.addEventListener('resize', debounce(updateBackButton, 150));
 
   // Auto-resize canvas iframe
   const iframe = document.getElementById('canvas-iframe');
