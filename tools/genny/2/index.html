@@ -23,7 +23,7 @@
 }
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; font-size: 14px; min-height: 100vh; }
-body.editor-mode { overflow: hidden; height: 100vh; }
+body.editor-mode { overflow: hidden; height: 100vh; height: 100dvh; }
 button { cursor: pointer; border: none; outline: none; font-family: inherit; font-size: 13px; }
 input, textarea, select { font-family: inherit; font-size: 13px; outline: none; }
 a { color: var(--accent); text-decoration: none; }
@@ -85,7 +85,7 @@ select.input { appearance: none; }
 /* ===== VIEWS ===== */
 #view-dashboard, #view-editor, #view-settings { display: none; }
 #view-dashboard.active, #view-settings.active { display: flex; flex-direction: column; min-height: 100vh; }
-#view-editor.active { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+#view-editor.active { display: flex; flex-direction: column; height: 100vh; height: 100dvh; overflow: hidden; }
 
 /* ===== DASHBOARD ===== */
 .dash-header { background: var(--bg2); border-bottom: 1px solid var(--border); padding: 0 24px; height: 56px; display: flex; align-items: center; gap: 16px; flex-shrink: 0; }
@@ -110,10 +110,10 @@ select.input { appearance: none; }
 #view-editor { flex-direction: column; }
 .editor-header { background: var(--bg2); border-bottom: 1px solid var(--border); height: 48px; display: flex; align-items: center; padding: 0 12px; gap: 8px; flex-shrink: 0; }
 .editor-title { font-weight: 600; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.editor-layout { display: flex; flex: 1; overflow: hidden; }
+.editor-layout { display: flex; flex: 1; min-height: 0; overflow: hidden; }
 
 /* Left panel - blocks */
-.editor-left { width: 220px; background: var(--bg2); border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; overflow-y: auto; height: 100%; }
+.editor-left { width: 220px; background: var(--bg2); border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; overflow-y: auto; height: 100%; min-height: 0; }
 .panel-title { padding: 10px 12px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: var(--text2); border-bottom: 1px solid var(--border); flex-shrink: 0; }
 .block-btn { display: flex; align-items: center; gap: 8px; width: 100%; padding: 8px 12px; background: transparent; border: none; color: var(--text); text-align: left; border-radius: 0; transition: background .1s; font-size: 13px; }
 .block-btn:hover { background: var(--bg3); }
@@ -147,18 +147,18 @@ select.input { appearance: none; }
 .page-item:hover .page-item-action { opacity: 1; }
 
 /* Center - canvas */
-.editor-center { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: #18181b; }
+.editor-center { flex: 1; min-height: 0; display: flex; flex-direction: column; overflow: hidden; background: #18181b; }
 .editor-toolbar { background: var(--bg2); border-bottom: 1px solid var(--border); padding: 6px 12px; display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
 .device-btn { padding: 4px 8px; border-radius: 5px; background: transparent; border: 1px solid transparent; color: var(--text2); font-size: 16px; }
 .device-btn.active, .device-btn:hover { border-color: var(--border); background: var(--bg3); color: var(--text); }
-.canvas-wrap { flex: 1; overflow: auto; padding: 20px; display: flex; justify-content: center; align-items: flex-start; }
+.canvas-wrap { flex: 1; min-height: 0; overflow: auto; padding: 20px; display: flex; justify-content: center; align-items: flex-start; }
 .canvas-frame { background: #fff; border-radius: 4px; box-shadow: var(--shadow); transition: width .2s; min-height: 600px; width: 100%; max-width: 100%; position: relative; }
 .canvas-frame.device-tablet { width: 768px; }
 .canvas-frame.device-mobile { width: 375px; }
 #canvas-iframe { width: 100%; border: none; display: block; min-height: 600px; }
 
 /* Right panel - properties */
-.editor-right { width: 260px; background: var(--bg2); border-left: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; overflow-y: auto; height: 100%; }
+.editor-right { width: 260px; background: var(--bg2); border-left: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; overflow-y: auto; height: 100%; min-height: 0; }
 .props-panel { padding: 12px; }
 .props-section { margin-bottom: 16px; }
 .props-section-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; color: var(--text2); margin-bottom: 8px; }
@@ -234,6 +234,14 @@ select.input { appearance: none; }
   .d-only { display: none !important; }
   .m-only { display: flex !important; }
 
+  body.editor-mode {
+    height: 100dvh;
+    width: 100vw;
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+  }
+
   /* Dashboard */
   .dash-header { padding: 0 12px; }
   .dash-logo { font-size: 15px; }
@@ -250,22 +258,47 @@ select.input { appearance: none; }
   .modal { width: 96vw !important; max-width: 96vw !important; padding: 18px; }
 
   /* Editor header */
-  .editor-header { padding: 0 8px; gap: 5px; }
+  #view-editor.active {
+    position: fixed;
+    inset: 0;
+    height: 100dvh;
+    max-height: 100dvh;
+    width: 100vw;
+  }
+  .editor-header {
+    height: calc(48px + env(safe-area-inset-top, 0px));
+    padding: env(safe-area-inset-top, 0px) 8px 0;
+    gap: 5px;
+    z-index: 20;
+  }
   #editor-project-name { flex: 1; }
+  #mode-visual,
+  #mode-code {
+    flex: 1 1 auto !important;
+    min-height: 0;
+    overflow: hidden !important;
+  }
 
   /* Show mobile bottom nav */
-  .mobile-bottom-nav { display: flex; }
+  .mobile-bottom-nav {
+    display: flex;
+    height: calc(56px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    z-index: 20;
+  }
 
   /* Editor panels — one visible at a time */
   /* Left panel: hidden by default, full-width when its tab is active */
-  .editor-left { display: none; width: 100%; border-right: none; }
+  .editor-layout { flex: 1 1 auto; min-height: 0; }
+  .editor-left { display: none; width: 100%; border-right: none; height: auto; min-height: 0; }
   .editor-left.mob-active { display: flex; }
 
   /* Right panel: hidden by default, full-width when its tab is active */
-  .editor-right { display: none; width: 100%; border-left: none; }
+  .editor-right { display: none; width: 100%; border-left: none; height: auto; min-height: 0; }
   .editor-right.mob-active { display: flex; }
 
   /* Center: always flex (visible unless another panel takes over) */
+  .editor-center { min-height: 0; }
   .editor-center.mob-hidden { display: none; }
 
   /* Canvas frame always full-width on mobile — no device frame emulation */
@@ -312,6 +345,7 @@ select.input { appearance: none; }
     <div class="ml-auto flex gap-2">
       <button class="btn btn-ghost btn-sm" onclick="showSettings()">⚙ Settings</button>
       <button class="btn btn-secondary btn-sm" onclick="triggerExistingSiteUpload()">⇪ Upload Existing Site</button>
+      <button class="btn btn-secondary btn-sm" onclick="openGithubImportModal()">🐙 Import from GitHub</button>
       <button class="btn btn-primary btn-sm" onclick="openNewProjectModal()">+ New Website</button>
     </div>
   </header>
@@ -380,6 +414,14 @@ select.input { appearance: none; }
       <div class="settings-section-desc">All websites are stored in your browser's localStorage.</div>
       <div id="storage-info" class="text-muted text-sm" style="margin-bottom:12px"></div>
       <button class="btn btn-danger btn-sm" onclick="clearAllData()">Clear All Data</button>
+    </div>
+
+    <!-- Deployment History -->
+    <div class="settings-section">
+      <div class="settings-section-title">Deployment History</div>
+      <div class="settings-section-desc">View and restore from versioned releases (if deployed as ZIP releases).</div>
+      <div id="deployment-history" class="text-muted text-sm" style="margin-bottom:12px">Loading...</div>
+      <button class="btn btn-secondary btn-sm" onclick="loadDeploymentHistory()">Refresh</button>
     </div>
   </div>
 </div>
@@ -649,6 +691,11 @@ select.input { appearance: none; }
           <label class="label">Subfolder (optional)</label>
           <input class="input" id="deploy-gh-folder" type="text" placeholder="Leave blank for root">
         </div>
+        <div class="field">
+          <label class="label">
+            <input type="checkbox" id="deploy-as-release"> Deploy as Versioned ZIP Release
+          </label>
+        </div>
         <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:10px;margin-bottom:12px;font-size:12px;color:var(--text2);">
           💡 To use GitHub Pages: after deployment, go to your repo Settings → Pages → set source to the <code>main</code> branch.
         </div>
@@ -726,10 +773,40 @@ select.input { appearance: none; }
   </div>
 </div>
 
+<!-- GitHub Import Modal -->
+<div id="modal-github-import" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-title">Import from GitHub</div>
+    <div class="field">
+      <label class="label">GitHub Repository URL</label>
+      <input class="input" id="github-import-url" type="url" placeholder="https://github.com/user/repo">
+    </div>
+    <div class="field">
+      <label class="label">Branch (optional)</label>
+      <input class="input" id="github-import-branch" type="text" placeholder="main">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal('modal-github-import')">Cancel</button>
+      <button class="btn btn-primary" onclick="startGithubImport()">Import</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ============================================================
-// STATE
+// UTILITY FUNCTIONS
 // ============================================================
+function debounce(func, wait) {
+  let timeout;
+  return function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(timeout);
+      func(...args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
+}
 const STATE = {
   projects: [],        // list of {id, name, created, modified}
   currentProjectId: null,
@@ -954,12 +1031,12 @@ function mkBlock(type, props = {}) {
   const projectBrandName = _projectData?.brandName || _projectNameContext || _projectData?.name || 'My Site';
   const defaults = {
     nav: { navbarId: 'main' },
-    hero: { heading: 'Welcome', subheading: 'Your tagline here.', buttonText: 'Learn More', buttonHref: '#', bgColor: brand.accent || '#7c6af7', textColor: '#ffffff', btnBg: '#ffffff', btnColor: brand.accent || '#7c6af7', minHeight: 'auto', contentWidth: '900px', align: 'center' },
+    hero: { heading: 'Welcome', subheading: 'Your tagline here.', buttonText: 'Learn More', buttonHref: '#', bgColor: brand.accent || '#7c6af7', textColor: '#ffffff', btnBg: '#ffffff', btnColor: brand.accent || '#7c6af7', minHeight: 'auto', contentWidth: '900px', align: 'center', bgImage: '', bgSize: 'cover', bgPosition: 'center', overlayColor: '#000000', overlayOpacity: '0' },
     heading: { text: 'Section Title', level: 'h2', align: 'left', color: '#111111' },
     text: { content: '<p>Add your text content here. Click to edit.</p>', align: 'left', color: '#333333' },
     image: { src: '', alt: 'Image', width: '100%', height: 'auto', aspectRatio: '', fit: 'contain', align: 'center', rounded: true, caption: '' },
     button: { text: 'Click Here', href: '#', bgColor: brand.accent || '#7c6af7', textColor: '#ffffff', align: 'center', size: 'medium', rounded: true },
-    section: { bgColor: '#ffffff', padding: '60px 20px', maxWidth: '1100px' },
+    section: { bgColor: '#ffffff', padding: '60px 20px', maxWidth: '1100px', content: '<h2>Section Title</h2>\n<p>Add your section content here.</p>' },
     columns2: { bgColor: '#ffffff', padding: '40px 20px', col1: '<p>Column 1 content</p>', col2: '<p>Column 2 content</p>', gap: '24px' },
     columns3: { bgColor: '#ffffff', padding: '40px 20px', col1: '<p>Column 1</p>', col2: '<p>Column 2</p>', col3: '<p>Column 3</p>', gap: '20px' },
     divider: { color: '#dddddd', thickness: '1px', margin: '20px 0' },
@@ -1051,8 +1128,12 @@ function _renderBlockInner(block, editing = false, ctx = null) {
     case 'hero': {
       const heroAlign = p.align || 'center';
       const heroFlexAlign = heroAlign === 'left' ? 'flex-start' : heroAlign === 'right' ? 'flex-end' : 'center';
-      return `<section ${sel} style="background:${p.bgColor||'#7c6af7'};color:${p.textColor||'#fff'};padding:100px 24px;min-height:${p.minHeight||'auto'};display:flex;align-items:center;justify-content:center;">
-  <div style="width:100%;max-width:${p.contentWidth||'900px'};text-align:${heroAlign};display:flex;flex-direction:column;align-items:${heroFlexAlign};margin:0 auto;">
+      const heroOverlayOpacity = Math.min(1, Math.max(0, Number(p.overlayOpacity || 0) || 0));
+      const heroBg = p.bgImage
+        ? `linear-gradient(rgba(${hexToRgb(p.overlayColor||'#000000')}, ${heroOverlayOpacity}), rgba(${hexToRgb(p.overlayColor||'#000000')}, ${heroOverlayOpacity})), ${p.bgColor||'#7c6af7'} url('${escCssUrl(p.bgImage)}') ${p.bgPosition||'center'} / ${p.bgSize||'cover'} no-repeat`
+        : (p.bgColor||'#7c6af7');
+      return `<section ${sel} style="background:${heroBg};color:${p.textColor||'#fff'};padding:100px 24px;min-height:${p.minHeight||'auto'};display:flex;align-items:center;justify-content:center;">
+  <div style="width:100%;max-width:${p.contentWidth||'900px'};text-align:${heroAlign};display:flex;flex-direction:column;align-items:${heroFlexAlign};margin:0 auto;position:relative;z-index:1;">
     <h1 style="font-size:clamp(28px,5vw,56px);font-weight:800;margin:0 0 16px;">${p.heading||'Welcome'}</h1>
     <p style="font-size:clamp(14px,2vw,20px);margin:0 0 32px;opacity:0.85;">${p.subheading||''}</p>
     ${p.buttonText ? `<a href="${p.buttonHref||'#'}" style="background:${p.btnBg||'#fff'};color:${p.btnColor||'#7c6af7'};padding:14px 32px;border-radius:6px;font-weight:600;font-size:16px;text-decoration:none;display:inline-block;">${p.buttonText}</a>` : ''}
@@ -1085,7 +1166,7 @@ function _renderBlockInner(block, editing = false, ctx = null) {
     }
     case 'section': {
       return `<section ${sel} style="background:${p.bgColor||'#fff'};padding:${p.padding||'60px 20px'};">
-  <div style="max-width:${p.maxWidth||'1100px'};margin:0 auto;"><!-- Section content --></div>
+  <div style="max-width:${p.maxWidth||'1100px'};margin:0 auto;">${p.content||''}</div>
 </section>`;
     }
     case 'columns2': {
@@ -1179,6 +1260,18 @@ function _renderBlockInner(block, editing = false, ctx = null) {
 // ============================================================
 function escAttr(s) { return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;'); }
 
+function hexToRgb(hex) {
+  const clean = String(hex || '#000000').replace('#', '').trim();
+  const full = clean.length === 3 ? clean.split('').map(c => c + c).join('') : clean;
+  const n = parseInt(full, 16);
+  if (Number.isNaN(n)) return '0, 0, 0';
+  return `${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}`;
+}
+
+function escCssUrl(s) {
+  return String(s || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/[\n\r]/g, '');
+}
+
 function buildMetaTags(projectData, page) {
   const sm = projectData.meta || {};
   const pm = page.meta || {};
@@ -1269,6 +1362,7 @@ function showSettings() {
   document.body.classList.remove('editor-mode');
   loadSettingsForm();
   updateStorageInfo();
+  loadDeploymentHistory();
   showView('settings');
 }
 function exitEditor() {
@@ -1296,6 +1390,12 @@ function renderDashboard() {
   uploadCard.innerHTML = '<span class="new-project-icon">⇪</span><span>Upload Existing Site</span><span class="text-sm text-muted" style="text-align:center;max-width:190px;">Use a ZIP exported from this sitebuilder with the included builder manifest.</span>';
   uploadCard.onclick = triggerExistingSiteUpload;
   grid.appendChild(uploadCard);
+
+  const githubCard = document.createElement('button');
+  githubCard.className = 'new-project-card';
+  githubCard.innerHTML = '<span class="new-project-icon">🐙</span><span>Import from GitHub</span><span class="text-sm text-muted" style="text-align:center;max-width:190px;">Import a GitHub repository as a new project.</span>';
+  githubCard.onclick = openGithubImportModal;
+  grid.appendChild(githubCard);
 
   STATE.projects.slice().reverse().forEach(p => {
     const card = document.createElement('div');
@@ -1345,6 +1445,13 @@ function openNewProjectModal() {
   document.getElementById('new-project-template').value = 'blank';
   openModal('modal-new-project');
   setTimeout(()=>document.getElementById('new-project-name').focus(),100);
+}
+
+function openGithubImportModal() {
+  document.getElementById('github-import-url').value = '';
+  document.getElementById('github-import-branch').value = 'main';
+  openModal('modal-github-import');
+  setTimeout(()=>document.getElementById('github-import-url').focus(),100);
 }
 
 function triggerExistingSiteUpload() {
@@ -1454,6 +1561,38 @@ async function importProjectZip(file) {
   renderDashboard();
   toast(`Imported "${importedName}"`, 'success');
   openEditor(id);
+}
+
+async function startGithubImport() {
+  const url = document.getElementById('github-import-url').value.trim();
+  const branch = document.getElementById('github-import-branch').value.trim() || 'main';
+  if (!url) return;
+
+  const match = url.match(/github\.com\/([^\/]+)\/([^\/]+)/);
+  if (!match) {
+    toast('Invalid GitHub URL', 'error');
+    return;
+  }
+  const owner = match[1];
+  const repo = match[2];
+
+  closeModal('modal-github-import');
+  toast('Importing from GitHub...', 'info');
+
+  try {
+    const token = LS.get('github')?.token;
+    const headers = token ? { Authorization: `token ${token}` } : {};
+    const zipUrl = `https://api.github.com/repos/${owner}/${repo}/zipball/${branch}`;
+    const response = await fetch(zipUrl, { headers });
+    if (!response.ok) {
+      throw new Error(`Failed to fetch repo: ${response.status}`);
+    }
+    const blob = await response.blob();
+    const file = new File([blob], `${repo}.zip`, { type: 'application/zip' });
+    await importProjectZip(file);
+  } catch (e) {
+    toast(e.message || 'GitHub import failed', 'error');
+  }
 }
 
 let _renameId = null;
@@ -2020,6 +2159,24 @@ function getBlockRawHTML(block) {
   return renderBlock(block, false, _projectData);
 }
 
+function buildContentInsertButtons(blockId, propKey) {
+  const items = [
+    ['heading', 'Heading'],
+    ['text', 'Text'],
+    ['image', 'Image'],
+    ['button', 'Button'],
+    ['divider', 'Divider'],
+    ['spacer', 'Spacer'],
+    ['html', 'Custom HTML']
+  ];
+  return `<div class="field">
+    <label class="label">Insert Content Block</label>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;">
+      ${items.map(([type, label]) => `<button class="btn btn-secondary btn-sm" onclick="insertContentIntoProp('${blockId}','${propKey}','${type}')">+ ${label}</button>`).join('')}
+    </div>
+  </div>`;
+}
+
 function buildPropsForm(block) {
   const p = block.props;
   const type = block.type;
@@ -2150,6 +2307,14 @@ function buildPropsForm(block) {
         ${['left','center','right'].map(v=>`<option value="${v}" ${(p.align||'center')===v?'selected':''}>${v}</option>`).join('')}
       </select></div>`;
       html += field('Background Color', 'bgColor', 'color');
+      html += field('Background Image URL', 'bgImage');
+      html += `<div class="field"><button class="btn btn-secondary btn-sm" style="width:100%;" onclick="openImageLibrary(null,(url)=>{updateProp('${block.id}','bgImage',url);renderProps();})">🖼 Use Image Library as Background</button></div>`;
+      html += `<div class="field"><label class="label">Background Size</label><select class="input" onchange="updateProp('${block.id}','bgSize',this.value)">
+        ${['cover','contain','auto','100% auto','auto 100%'].map(v=>`<option value="${v}" ${(p.bgSize||'cover')===v?'selected':''}>${v}</option>`).join('')}
+      </select></div>`;
+      html += field('Background Position', 'bgPosition');
+      html += field('Overlay Color', 'overlayColor', 'color');
+      html += `<div class="field"><label class="label">Overlay Opacity <span style="font-size:10px;opacity:.6;">0 to 1</span></label><input class="input" type="number" min="0" max="1" step="0.05" value="${p.overlayOpacity||'0'}" oninput="updateProp('${block.id}','overlayOpacity',this.value)"></div>`;
       html += field('Text Color', 'textColor', 'color');
       html += field('Button Background', 'btnBg', 'color');
       html += field('Button Text Color', 'btnColor', 'color');
@@ -2203,15 +2368,22 @@ function buildPropsForm(block) {
       html += field('Background Color', 'bgColor', 'color');
       html += field('Padding', 'padding');
       html += field('Max Width', 'maxWidth');
+      html += buildContentInsertButtons(block.id, 'content');
+      html += `<div class="field"><label class="label">Section HTML</label><textarea class="input" rows="8" oninput="updateProp('${block.id}','content',this.value)">${escapeHtmlForTextarea(p.content||'')}</textarea></div>`;
       break;
     case 'columns2':
     case 'columns3':
       html += field('Background Color', 'bgColor', 'color');
       html += field('Padding', 'padding');
       html += field('Gap', 'gap');
-      html += `<div class="field"><label class="label">Column 1 HTML</label><textarea class="input" rows="3" oninput="updateProp('${block.id}','col1',this.value)">${(p.col1||'').replace(/</g,'&lt;')}</textarea></div>`;
-      html += `<div class="field"><label class="label">Column 2 HTML</label><textarea class="input" rows="3" oninput="updateProp('${block.id}','col2',this.value)">${(p.col2||'').replace(/</g,'&lt;')}</textarea></div>`;
-      if (type === 'columns3') html += `<div class="field"><label class="label">Column 3 HTML</label><textarea class="input" rows="3" oninput="updateProp('${block.id}','col3',this.value)">${(p.col3||'').replace(/</g,'&lt;')}</textarea></div>`;
+      html += buildContentInsertButtons(block.id, 'col1');
+      html += `<div class="field"><label class="label">Column 1 HTML</label><textarea class="input" rows="5" oninput="updateProp('${block.id}','col1',this.value)">${escapeHtmlForTextarea(p.col1||'')}</textarea></div>`;
+      html += buildContentInsertButtons(block.id, 'col2');
+      html += `<div class="field"><label class="label">Column 2 HTML</label><textarea class="input" rows="5" oninput="updateProp('${block.id}','col2',this.value)">${escapeHtmlForTextarea(p.col2||'')}</textarea></div>`;
+      if (type === 'columns3') {
+        html += buildContentInsertButtons(block.id, 'col3');
+        html += `<div class="field"><label class="label">Column 3 HTML</label><textarea class="input" rows="5" oninput="updateProp('${block.id}','col3',this.value)">${escapeHtmlForTextarea(p.col3||'')}</textarea></div>`;
+      }
       break;
     case 'divider':
       html += field('Color', 'color', 'color');
@@ -2354,6 +2526,24 @@ function updateProp(blockId, key, value) {
   // Manual edit breaks the brand link for this prop
   if (block.brandLinks && block.brandLinks[key]) delete block.brandLinks[key];
   renderCanvas();
+  renderLayoutList();
+}
+
+function getContentSnippetHTML(type) {
+  const snippetBlock = mkBlock(type);
+  return renderBlock(snippetBlock, false, _projectData);
+}
+
+function insertContentIntoProp(blockId, key, type) {
+  const page = _projectData.pages[STATE.currentPageIndex];
+  const block = page.blocks.find(b=>b.id===blockId);
+  if (!block) return;
+  pushUndo();
+  const current = block.props[key] || '';
+  const spacer = current.trim() ? '\n\n' : '';
+  block.props[key] = current + spacer + getContentSnippetHTML(type);
+  renderCanvas();
+  renderProps();
   renderLayoutList();
 }
 
@@ -2969,6 +3159,54 @@ function clearAllData() {
   toast('All data cleared', 'info');
 }
 
+async function loadDeploymentHistory() {
+  const gh = LS.get('github') || {};
+  const repoInfo = LS.get('lastDeployRepo') || {};
+  if (!gh.verified) {
+    document.getElementById('deployment-history').textContent = 'Connect GitHub first.';
+    return;
+  }
+  const owner = repoInfo.owner || gh.owner || gh.login;
+  const repo = repoInfo.repo || 'my-website';
+  try {
+    const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/releases`, {
+      headers: githubHeaders(gh.token)
+    });
+    if (!res.ok) throw new Error('Failed to load releases');
+    const releases = await res.json();
+    if (!releases.length) {
+      document.getElementById('deployment-history').textContent = 'No releases found.';
+      return;
+    }
+    const html = releases.slice(0,5).map(r => {
+      const zipAsset = r.assets.find(a => a.name.endsWith('.zip'));
+      return `
+        <div style="margin-bottom:8px;padding:8px;border:1px solid var(--border);border-radius:6px;">
+          <div style="font-weight:600;">${r.tag_name}</div>
+          <div class="text-muted text-sm">${new Date(r.created_at).toLocaleString()}</div>
+          ${zipAsset ? `<button class="btn btn-secondary btn-sm" onclick="restoreFromRelease('${zipAsset.browser_download_url}')">Restore</button>` : '<span class="text-muted text-sm">No ZIP asset</span>'}
+        </div>
+      `;
+    }).join('');
+    document.getElementById('deployment-history').innerHTML = html;
+  } catch(e) {
+    document.getElementById('deployment-history').textContent = 'Error loading history: ' + e.message;
+  }
+}
+
+async function restoreFromRelease(zipUrl) {
+  toast('Restoring from release...', 'info');
+  try {
+    const res = await fetch(zipUrl);
+    if (!res.ok) throw new Error('Failed to download release');
+    const blob = await res.blob();
+    const file = new File([blob], 'release.zip', { type: 'application/zip' });
+    await importProjectZip(file);
+  } catch(e) {
+    toast('Restore failed: ' + e.message, 'error');
+  }
+}
+
 // ============================================================
 // DEPLOY MODAL
 // ============================================================
@@ -3019,11 +3257,12 @@ function selectDeployTarget(t) {
 
 async function startDeploy() {
   if (!STATE.deployTarget) return;
+  const asRelease = STATE.deployTarget === 'github' && document.getElementById('deploy-as-release').checked;
   document.getElementById('deploy-actions').classList.add('hidden');
   document.getElementById('deploy-progress').classList.remove('hidden');
 
   if (STATE.deployTarget === 'github') {
-    await deployToGithub();
+    await deployToGithub(asRelease);
   } else {
     await deployToCloudflare();
   }
@@ -3032,12 +3271,27 @@ async function startDeploy() {
 // ============================================================
 // GITHUB DEPLOYMENT
 // ============================================================
-async function deployToGithub() {
+async function deployToGithub(asRelease = false) {
   const gh = LS.get('github') || {};
-  const repo = document.getElementById('deploy-gh-repo').value.trim();
+  const rawRepoInput = document.getElementById('deploy-gh-repo').value.trim();
   const branch = document.getElementById('deploy-gh-branch').value.trim() || 'main';
   const subfolder = document.getElementById('deploy-gh-folder').value.trim();
-  const owner = gh.owner || gh.login;
+  const login = gh.login || await getGithubLogin(gh.token);
+  const repoParts = parseGithubRepoInput(rawRepoInput, normalizeGithubOwner(gh.owner || login));
+  let owner = repoParts.owner || login;
+  const repo = repoParts.repo;
+  if (!repo) {
+    toast('Enter a GitHub repository name or owner/repo path', 'error');
+    return;
+  }
+  if (!/^[a-z0-9_-]{1,100}$/.test(repo) || repo.includes('--') || repo.startsWith('-') || repo.endsWith('-')) {
+    toast('Invalid repository name. Use only lowercase letters, numbers, hyphens, and underscores (1-100 chars, no leading/trailing/consecutive hyphens).', 'error');
+    return;
+  }
+  if (!owner) {
+    toast('Unable to determine GitHub owner. Set your GitHub username in Settings or enter owner/repo.', 'error');
+    return;
+  }
 
   const steps = document.getElementById('deploy-steps');
 
@@ -3056,113 +3310,365 @@ async function deployToGithub() {
 
   // Step 1: Ensure repo exists
   const s1 = addStep('Checking / creating repository');
+  let repoData = null;
   try {
     let res = await ghFetch(`https://api.github.com/repos/${owner}/${repo}`, gh.token);
     if (res.status === 404) {
-      // Create repo
-      const createRes = await fetch('https://api.github.com/user/repos', {
-        method: 'POST',
-        headers: { 'Authorization': 'token '+gh.token, 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: repo, private: false, auto_init: true, description: _projectData.name })
-      });
-      if (!createRes.ok) throw new Error('Failed to create repo');
+      repoData = await createGithubRepo(owner, login, repo, gh.token);
+      owner = repoData.owner?.login || owner;
+      if (!gh.login && login) LS.set('github', Object.assign({}, gh, { login }));
       await sleep(2000); // Wait for GitHub to initialize
-    } else if (!res.ok) throw new Error('Failed to check repo');
+    } else if (!res.ok) {
+      throw new Error(await githubErrorMessage(res, 'Failed to check repo'));
+    } else {
+      repoData = await res.json();
+      owner = repoData.owner?.login || owner;
+    }
+    if (!repoData) {
+      const repoRes = await ghFetch(`https://api.github.com/repos/${owner}/${repo}`, gh.token);
+      if (!repoRes.ok) throw new Error(await githubErrorMessage(repoRes, 'Failed to load repo after creation'));
+      repoData = await repoRes.json();
+    }
+    LS.set('lastDeployRepo', { owner, repo, branch });
     setStepDone(s1, `Repository ${owner}/${repo}`);
   } catch(e) { setStepDone(s1, e.message, false); return showDeployDone(false); }
 
-  // Step 2: Get current tree (to check for existing files)
-  const s2 = addStep('Preparing files');
+  // Step 2: Get current tree (to check for existing files) or build ZIP
+  const s2 = addStep(asRelease ? 'Building site ZIP' : 'Preparing files');
   let blobs = [];
+  let zipBlob = null;
   try {
     // Build image map for deploy
     const imageMap = {};
     const libImages = _projectData.images || [];
     libImages.forEach(img => { imageMap[img.dataURL] = img.name; });
 
-    for (const [i, page] of _projectData.pages.entries()) {
-      const html = compilePageHTML(_projectData, i, false, imageMap);
-      const filename = (page.slug || (i===0?'index':'page'+i)) + '.html';
-      const path = subfolder ? `${subfolder}/${filename}` : filename;
-      const content = btoa(unescape(encodeURIComponent(html)));
-      blobs.push({ path, content, binary: false });
-    }
-    // CSS and JS
-    blobs.push({ path: subfolder ? `${subfolder}/style.css` : 'style.css', content: btoa(unescape(encodeURIComponent(_projectData.globalCSS||''))), binary: false });
-    blobs.push({ path: subfolder ? `${subfolder}/script.js` : 'script.js', content: btoa(unescape(encodeURIComponent(_projectData.globalJS||''))), binary: false });
-    // Images
-    libImages.forEach(img => {
-      const b64 = img.dataURL.split(',')[1];
-      if (b64) {
-        const imgPath = subfolder ? `${subfolder}/images/${img.name}` : `images/${img.name}`;
-        blobs.push({ path: imgPath, content: b64, binary: true });
+    if (asRelease) {
+      // Generate ZIP for release
+      const zip = new JSZip();
+      const folder = zip.folder('site');
+
+      for (const [i, page] of _projectData.pages.entries()) {
+        const html = compilePageHTML(_projectData, i, false, imageMap);
+        const filename = (page.slug || (i===0?'index':'page'+i)) + '.html';
+        folder.file(filename, html);
+        const path = subfolder ? `${subfolder}/${filename}` : filename;
+        const content = btoa(unescape(encodeURIComponent(html)));
+        blobs.push({ path, content, binary: false });
       }
-    });
-    setStepDone(s2, `${blobs.length} files ready`);
+      folder.file('style.css', _projectData.globalCSS || '');
+      folder.file('script.js', _projectData.globalJS || '');
+      blobs.push({ path: subfolder ? `${subfolder}/style.css` : 'style.css', content: btoa(unescape(encodeURIComponent(_projectData.globalCSS||''))), binary: false });
+      blobs.push({ path: subfolder ? `${subfolder}/script.js` : 'script.js', content: btoa(unescape(encodeURIComponent(_projectData.globalJS||''))), binary: false });
+      libImages.forEach(img => {
+        const b64 = img.dataURL.split(',')[1];
+        if (b64) {
+          folder.file(`images/${img.name}`, b64, { base64: true });
+          const imgPath = subfolder ? `${subfolder}/images/${img.name}` : `images/${img.name}`;
+          blobs.push({ path: imgPath, content: b64, binary: true });
+        }
+      });
+
+      zipBlob = await zip.generateAsync({ type: 'blob' });
+      setStepDone(s2, `ZIP built and ${blobs.length} files ready`);
+    } else {
+      // Prepare blobs for upload
+      for (const [i, page] of _projectData.pages.entries()) {
+        const html = compilePageHTML(_projectData, i, false, imageMap);
+        const filename = (page.slug || (i===0?'index':'page'+i)) + '.html';
+        const path = subfolder ? `${subfolder}/${filename}` : filename;
+        const content = btoa(unescape(encodeURIComponent(html)));
+        blobs.push({ path, content, binary: false });
+      }
+      blobs.push({ path: subfolder ? `${subfolder}/style.css` : 'style.css', content: btoa(unescape(encodeURIComponent(_projectData.globalCSS||''))), binary: false });
+      blobs.push({ path: subfolder ? `${subfolder}/script.js` : 'script.js', content: btoa(unescape(encodeURIComponent(_projectData.globalJS||''))), binary: false });
+      libImages.forEach(img => {
+        const b64 = img.dataURL.split(',')[1];
+        if (b64) {
+          const imgPath = subfolder ? `${subfolder}/images/${img.name}` : `images/${img.name}`;
+          blobs.push({ path: imgPath, content: b64, binary: true });
+        }
+      });
+      setStepDone(s2, `${blobs.length} files ready`);
+    }
   } catch(e) { setStepDone(s2, e.message, false); return showDeployDone(false); }
 
-  // Step 3: Get ref
-  const s3 = addStep('Uploading to GitHub');
+  // Step 3: Upload or create release
+  const s3 = addStep(asRelease ? 'Creating GitHub release' : 'Uploading to GitHub');
   try {
-    // Get the latest commit SHA
-    const refRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/git/refs/heads/${branch}`, {
-      headers: { 'Authorization': 'token '+gh.token, 'Accept': 'application/vnd.github.v3+json' }
-    });
-
-    let latestCommitSha;
-    if (refRes.ok) {
-      const refData = await refRes.json();
-      latestCommitSha = refData.object.sha;
-    } else {
-      // Branch doesn't exist, get default branch
-      const repoRes = await fetch(`https://api.github.com/repos/${owner}/${repo}`, {
-        headers: { 'Authorization': 'token '+gh.token, 'Accept': 'application/vnd.github.v3+json' }
+    if (asRelease) {
+      // Create release with ZIP
+      const version = `v${new Date().toISOString().slice(0,10).replace(/-/g,'')}-${Date.now().toString().slice(-4)}`;
+      const releaseBody = JSON.stringify({
+        tag_name: version,
+        name: `${(_projectData.name || 'Site').replace(/[^\w\s-]/g, '').trim()} - ${new Date().toLocaleDateString()}`,
+        body: 'Deployed from Functional Websites builder',
+        draft: false,
+        prerelease: false
       });
-      const repoData = await repoRes.json();
-      const defRef = await fetch(`https://api.github.com/repos/${owner}/${repo}/git/refs/heads/${repoData.default_branch}`, {
-        headers: { 'Authorization': 'token '+gh.token, 'Accept': 'application/vnd.github.v3+json' }
-      });
-      if (defRef.ok) {
-        const defData = await defRef.json();
-        latestCommitSha = defData.object.sha;
-      }
-    }
-
-    // Upload files one by one (simpler than tree API for small sites)
-    for (const blob of blobs) {
-      const fileRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${blob.path}`, {
-        headers: { 'Authorization': 'token '+gh.token, 'Accept': 'application/vnd.github.v3+json' }
-      });
-
-      let sha;
-      if (fileRes.ok) {
-        const existing = await fileRes.json();
-        sha = existing.sha;
+      let release;
+      try {
+        const releaseRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/releases`, {
+          method: 'POST',
+          headers: githubHeaders(gh.token, true),
+          body: releaseBody
+        });
+        if (!releaseRes.ok) {
+          const errMsg = await githubErrorMessage(releaseRes, 'Failed to create release');
+          throw new Error(errMsg);
+        }
+        release = await releaseRes.json();
+      } catch (e) {
+        if (e.message.includes('Load failed') || e.message.includes('Network')) {
+          throw new Error('Network error creating release. Check your connection and try again.');
+        }
+        throw e;
       }
 
-      const putBody = { message: `Deploy: ${blob.path}`, content: blob.content, branch };
-      if (sha) putBody.sha = sha;
-
-      const putRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${blob.path}`, {
+      // Upload ZIP as repo file instead of release asset (avoids GitHub uploads CORS issues)
+      const zipName = `${repo}-${version}.zip`;
+      const path = `versioned-zips/${zipName}`;
+      const uploadBranch = await ensureGithubBranch(owner, repo, branch, repoData?.default_branch, gh.token);
+      const contentBase64 = await blobToBase64(zipBlob);
+      const existingSha = await getGithubFileSha(owner, repo, path, uploadBranch, gh.token);
+      const putBody = { message: `Upload versioned ZIP: ${zipName}`, content: contentBase64 };
+      if (uploadBranch) putBody.branch = uploadBranch;
+      if (existingSha) putBody.sha = existingSha;
+      const uploadRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${encodeGithubPath(path)}`, {
         method: 'PUT',
-        headers: { 'Authorization': 'token '+gh.token, 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+        headers: githubHeaders(gh.token, true),
         body: JSON.stringify(putBody)
       });
-      if (!putRes.ok) {
-        const err = await putRes.json();
-        throw new Error(err.message || 'Upload failed');
+      if (!uploadRes.ok) {
+        const errMsg = await githubErrorMessage(uploadRes, `Failed to upload ZIP to repo path ${path}`);
+        throw new Error(errMsg);
       }
+
+      // Upload website files to branch as well
+      for (const blob of blobs) {
+        const encodedPath = encodeGithubPath(blob.path);
+        const refQuery = uploadBranch ? `?ref=${encodeURIComponent(uploadBranch)}` : '';
+        const fileRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${encodedPath}${refQuery}`, {
+          headers: githubHeaders(gh.token)
+        });
+
+        let sha;
+        if (fileRes.ok) {
+          const existing = await fileRes.json();
+          sha = existing.sha;
+        } else if (fileRes.status !== 404) {
+          throw new Error(await githubErrorMessage(fileRes, `Failed to check ${blob.path}`));
+        }
+
+        const putBody = { message: `Deploy: ${blob.path}`, content: blob.content };
+        if (uploadBranch) putBody.branch = uploadBranch;
+        if (sha) putBody.sha = sha;
+
+        const putRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${encodedPath}`, {
+          method: 'PUT',
+          headers: githubHeaders(gh.token, true),
+          body: JSON.stringify(putBody)
+        });
+        if (!putRes.ok) {
+          throw new Error(await githubErrorMessage(putRes, `Upload failed for ${blob.path}`));
+        }
+      }
+      setStepDone(s3, `Release ${version} created, ZIP saved to ${path}, and website uploaded`);
+    } else {
+      // Original file upload logic
+      const uploadBranch = await ensureGithubBranch(owner, repo, branch, repoData?.default_branch, gh.token);
+
+      for (const blob of blobs) {
+        const encodedPath = encodeGithubPath(blob.path);
+        const refQuery = uploadBranch ? `?ref=${encodeURIComponent(uploadBranch)}` : '';
+        const fileRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${encodedPath}${refQuery}`, {
+          headers: githubHeaders(gh.token)
+        });
+
+        let sha;
+        if (fileRes.ok) {
+          const existing = await fileRes.json();
+          sha = existing.sha;
+        } else if (fileRes.status !== 404) {
+          throw new Error(await githubErrorMessage(fileRes, `Failed to check ${blob.path}`));
+        }
+
+        const putBody = { message: `Deploy: ${blob.path}`, content: blob.content };
+        if (uploadBranch) putBody.branch = uploadBranch;
+        if (sha) putBody.sha = sha;
+
+        const putRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${encodedPath}`, {
+          method: 'PUT',
+          headers: githubHeaders(gh.token, true),
+          body: JSON.stringify(putBody)
+        });
+        if (!putRes.ok) {
+          throw new Error(await githubErrorMessage(putRes, `Upload failed for ${blob.path}`));
+        }
+      }
+      setStepDone(s3, `Uploaded ${blobs.length} files`);
     }
-    setStepDone(s3, `Uploaded ${blobs.length} files`);
   } catch(e) { setStepDone(s3, e.message, false); return showDeployDone(false); }
 
   // Done
-  const url = `https://${owner}.github.io/${repo}/${subfolder||''}`;
-  showDeployDone(true, `🎉 Deployed! Enable GitHub Pages in repo settings to go live.\n\nYour site will be at:\n${url}`, url);
+  const url = asRelease ? `https://github.com/${owner}/${repo}/releases` : `https://${owner}.github.io/${repo}/${subfolder||''}`;
+  const msg = asRelease ? `🎉 Release created! Download the ZIP from the releases page to restore later.\n\nReleases: ${url}` : `🎉 Deployed! Enable GitHub Pages in repo settings to go live.\n\nYour site will be at:\n${url}`;
+  showDeployDone(true, msg, url);
 }
 
 async function ghFetch(url, token) {
-  return fetch(url, { headers: { 'Authorization': 'token '+token, 'Accept': 'application/vnd.github.v3+json' } });
+  return fetch(url, { headers: githubHeaders(token) });
+}
+
+async function getGithubLogin(token) {
+  const res = await ghFetch('https://api.github.com/user', token);
+  if (!res.ok) return '';
+  const user = await res.json();
+  return user.login || '';
+}
+
+function normalizeGithubOwner(owner) {
+  return String(owner || '')
+    .trim()
+    .replace(/^https?:\/\/github\.com\//i, '')
+    .replace(/^@/, '')
+    .replace(/\/.*$/, '');
+}
+
+function parseGithubRepoInput(input, fallbackOwner = '') {
+  let value = String(input || '').trim();
+  let owner = fallbackOwner;
+  let repo = value;
+
+  const urlMatch = value.match(/^(?:https?:\/\/)?(?:www\.)?github\.com\/([^\/]+)\/([^\/]+)(?:\/.*)?$/i);
+  if (urlMatch) {
+    owner = urlMatch[1];
+    repo = urlMatch[2];
+  } else {
+    const slashMatch = value.match(/^([^\/]+)\/([^\/]+)$/);
+    if (slashMatch) {
+      owner = slashMatch[1];
+      repo = slashMatch[2];
+    }
+  }
+
+  return { owner: normalizeGithubOwner(owner), repo: repo.trim() };
+}
+
+async function createGithubRepo(owner, login, repo, token) {
+  const body = JSON.stringify({ name: repo, private: false, auto_init: true, description: _projectData.name });
+  const shouldTryOrg = owner && login && owner.toLowerCase() !== login.toLowerCase();
+
+  if (shouldTryOrg) {
+    const orgRes = await fetch(`https://api.github.com/orgs/${owner}/repos`, {
+      method: 'POST',
+      headers: githubHeaders(token, true),
+      body
+    });
+    if (orgRes.ok) return orgRes.json();
+    if (orgRes.status === 422) {
+      const existing = await ghFetch(`https://api.github.com/repos/${owner}/${repo}`, token);
+      if (existing.ok) return existing.json();
+    }
+    if (orgRes.status !== 404 && orgRes.status !== 403) {
+      throw new Error(await githubErrorMessage(orgRes, 'Failed to create repo in organization'));
+    }
+  }
+
+  const userRes = await fetch('https://api.github.com/user/repos', {
+    method: 'POST',
+    headers: githubHeaders(token, true),
+    body
+  });
+  if (userRes.ok) return userRes.json();
+  if (userRes.status === 422) {
+    const existing = await ghFetch(`https://api.github.com/repos/${login}/${repo}`, token);
+    if (existing.ok) return existing.json();
+  }
+  throw new Error(await githubErrorMessage(userRes, 'Failed to create repo'));
+
+}
+
+function githubHeaders(token, json = false) {
+  const headers = {
+    'Authorization': 'token ' + token,
+    'Accept': 'application/vnd.github.v3+json'
+  };
+  if (json) headers['Content-Type'] = 'application/json';
+  return headers;
+}
+
+async function githubErrorMessage(res, fallback) {
+  try {
+    const err = await res.json();
+    return err.message ? `${fallback}: ${err.message}` : fallback;
+  } catch(e) {
+    return fallback;
+  }
+}
+
+async function getGithubFileSha(owner, repo, path, branch, token) {
+  try {
+    const url = `https://api.github.com/repos/${owner}/${repo}/contents/${encodeGithubPath(path)}${branch ? `?ref=${encodeURIComponent(branch)}` : ''}`;
+    const res = await fetch(url, { headers: githubHeaders(token) });
+    if (!res.ok) {
+      if (res.status === 404) return null;
+      throw new Error(await githubErrorMessage(res, `Failed to check file ${path}`));
+    }
+    const data = await res.json();
+    return data.sha;
+  } catch (e) {
+    if (e.message && e.message.includes('404')) return null;
+    throw e;
+  }
+}
+
+function blobToBase64(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const result = reader.result;
+      const base64 = result.split(',')[1];
+      resolve(base64);
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+
+function encodeGithubPath(path) {
+  return String(path).split('/').map(encodeURIComponent).join('/');
+}
+
+async function getGithubBranchRef(owner, repo, branch, token) {
+  const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/git/refs/heads/${encodeURIComponent(branch)}`, {
+    headers: githubHeaders(token)
+  });
+  if (res.ok) return res.json();
+  if (res.status === 404) return null;
+  throw new Error(await githubErrorMessage(res, `Failed to check branch ${branch}`));
+}
+
+async function ensureGithubBranch(owner, repo, branch, defaultBranch, token) {
+  const existing = await getGithubBranchRef(owner, repo, branch, token);
+  if (existing) return branch;
+
+  const sourceBranch = defaultBranch || 'main';
+  const source = await getGithubBranchRef(owner, repo, sourceBranch, token);
+  if (!source) {
+    // Empty repositories can be initialized by the contents API; omit branch so GitHub uses the default.
+    return null;
+  }
+
+  const createRef = await fetch(`https://api.github.com/repos/${owner}/${repo}/git/refs`, {
+    method: 'POST',
+    headers: githubHeaders(token, true),
+    body: JSON.stringify({ ref: `refs/heads/${branch}`, sha: source.object.sha })
+  });
+  if (!createRef.ok && createRef.status !== 422) {
+    throw new Error(await githubErrorMessage(createRef, `Failed to create branch ${branch}`));
+  }
+  return branch;
 }
 
 // ============================================================
