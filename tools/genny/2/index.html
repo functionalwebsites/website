@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>Functional Websites — Static Website Builder</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <style>
@@ -331,6 +334,13 @@ select.input { appearance: none; }
 .props-tabs { display: flex; border-bottom: 1px solid var(--border); margin: -12px -12px 12px; }
 .props-tab-btn { padding: 9px 14px; font-size: 12px; font-weight: 500; cursor: pointer; color: var(--text2); background: transparent; border: none; border-bottom: 2px solid transparent; transition: all .15s; }
 .props-tab-btn.active { color: var(--text); border-bottom-color: var(--accent); }
+.help-docs { display: grid; gap: 14px; }
+.help-card { background: var(--bg3); border: 1px solid var(--border); border-radius: 10px; padding: 14px; }
+.help-card h3 { font-size: 14px; margin-bottom: 8px; }
+.help-card p { color: var(--text2); line-height: 1.55; margin-bottom: 8px; }
+.help-card ul, .help-card ol { color: var(--text2); line-height: 1.6; padding-left: 20px; }
+.help-card li { margin-bottom: 4px; }
+.help-kbd { display: inline-block; padding: 1px 6px; border: 1px solid var(--border); border-radius: 4px; background: var(--bg2); color: var(--text); font-size: 11px; }
 </style>
 </head>
 <body>
@@ -343,6 +353,7 @@ select.input { appearance: none; }
   <header class="dash-header">
     <div class="dash-logo"><span>Functional</span> Websites</div>
     <div class="ml-auto flex gap-2">
+      <button class="btn btn-ghost btn-sm" onclick="openHelpDocs()">? Help</button>
       <button class="btn btn-ghost btn-sm" onclick="showSettings()">⚙ Settings</button>
       <button class="btn btn-secondary btn-sm" onclick="triggerExistingSiteUpload()">⇪ Upload Existing Site</button>
       <button class="btn btn-secondary btn-sm" onclick="openGithubImportModal()">🐙 Import from GitHub</button>
@@ -421,7 +432,7 @@ select.input { appearance: none; }
       <div class="settings-section-title">Deployment History</div>
       <div class="settings-section-desc">View and restore from versioned releases (if deployed as ZIP releases).</div>
       <div id="deployment-history" class="text-muted text-sm" style="margin-bottom:12px">Loading...</div>
-      <button class="btn btn-secondary btn-sm" onclick="loadDeploymentHistory()">Refresh</button>
+      <button class="btn btn-secondary btn-sm" onclick="loadDeploymentHistory(true)">Refresh</button>
     </div>
   </div>
 </div>
@@ -440,6 +451,7 @@ select.input { appearance: none; }
       <button class="editor-mode-tab" data-mode="code" onclick="switchEditorMode('code')">Code</button>
     </div>
     <button class="btn btn-secondary btn-sm d-only" onclick="openImageLibrary(null)">🖼 Images</button>
+    <button class="btn btn-secondary btn-sm d-only" onclick="openHelpDocs()">? Help</button>
     <button class="btn btn-secondary btn-sm d-only" onclick="previewProject()">👁 Preview</button>
     <button class="btn btn-secondary btn-sm d-only" onclick="downloadZip()">⬇ Download ZIP</button>
     <button class="btn btn-primary btn-sm" onclick="saveProject()">💾 Save</button>
@@ -453,6 +465,7 @@ select.input { appearance: none; }
     <button class="mob-overflow-item" onclick="closeMobileOverflow();undo()" id="mob-btn-undo">↩ &nbsp;Undo</button>
     <button class="mob-overflow-item" onclick="closeMobileOverflow();redo()" id="mob-btn-redo">↪ &nbsp;Redo</button>
     <button class="mob-overflow-item divider" onclick="closeMobileOverflow();openImageLibrary(null)">🖼 &nbsp;Images</button>
+    <button class="mob-overflow-item" onclick="closeMobileOverflow();openHelpDocs()">? &nbsp;Help / Docs</button>
     <button class="mob-overflow-item" onclick="closeMobileOverflow();previewProject()">👁 &nbsp;Preview</button>
     <button class="mob-overflow-item" onclick="closeMobileOverflow();downloadZip()">⬇ &nbsp;Download ZIP</button>
     <button class="mob-overflow-item" onclick="closeMobileOverflow();openDeployModal()">🚀 &nbsp;Deploy</button>
@@ -788,6 +801,63 @@ select.input { appearance: none; }
     <div class="modal-actions">
       <button class="btn btn-secondary" onclick="closeModal('modal-github-import')">Cancel</button>
       <button class="btn btn-primary" onclick="startGithubImport()">Import</button>
+    </div>
+  </div>
+</div>
+
+<!-- Help / Docs Modal -->
+<div id="modal-help-docs" class="modal-overlay hidden">
+  <div class="modal" style="width:760px;">
+    <div class="flex items-center gap-2" style="margin-bottom:16px;">
+      <div class="modal-title" style="margin:0;">Help / Docs</div>
+      <button class="btn btn-ghost btn-sm ml-auto" onclick="closeModal('modal-help-docs')">Close</button>
+    </div>
+    <div class="help-docs">
+      <div class="help-card">
+        <h3>Quick Start</h3>
+        <ol>
+          <li>From the home page, choose <strong>New Website</strong> and fill in the brand defaults.</li>
+          <li>Pick a starter template, then use the left <strong>Add</strong> panel to add blocks.</li>
+          <li>Click any block in the canvas to edit its settings in the right <strong>Properties</strong> panel.</li>
+          <li>Use <strong>Save</strong> often. Your projects are stored in this browser's localStorage.</li>
+          <li>Use <strong>Preview</strong> to open the current page, or <strong>Download ZIP</strong> to export the full site.</li>
+        </ol>
+      </div>
+
+      <div class="help-card">
+        <h3>Builder Concepts</h3>
+        <ul>
+          <li><strong>Pages</strong> are listed in the left panel. Each page exports as its own HTML file.</li>
+          <li><strong>Blocks</strong> are the editable pieces of a page: Hero, Text, Image, Cards, Footer, and more.</li>
+          <li><strong>Sections and Columns</strong> can hold editable HTML, and their insert buttons can add common content snippets inside them.</li>
+          <li><strong>Layout</strong> shows every block on the page, including anchor slugs when available, so you can select, move, or delete hard-to-click blocks like dividers.</li>
+          <li><strong>Advanced</strong> on a selected block includes anchors, block-level CSS/JS, and a read-only raw HTML snippet.</li>
+        </ul>
+      </div>
+
+      <div class="help-card">
+        <h3>Importing and Restoring</h3>
+        <p><strong>Upload Existing Site</strong> is best for ZIPs exported from this builder. Those ZIPs include builder project data, so you can continue editing where you left off.</p>
+        <p><strong>Import from GitHub</strong> can import static HTML repositories. It converts HTML pages into editable text blocks, which is useful for recovery but not as precise as importing a builder ZIP.</p>
+      </div>
+
+      <div class="help-card">
+        <h3>Deploying</h3>
+        <ul>
+          <li><strong>GitHub Pages</strong> creates or updates files in a repository. After deploy, enable Pages in the repo settings and choose the deployed branch/folder.</li>
+          <li><strong>Cloudflare Pages</strong> uses direct upload and needs a Cloudflare API token plus account ID in Settings.</li>
+          <li>If GitHub says <strong>Not Found</strong>, check the saved username/org, token permissions, branch name, and whether the token can create repos in that org.</li>
+        </ul>
+      </div>
+
+      <div class="help-card">
+        <h3>Useful Shortcuts</h3>
+        <ul>
+          <li><span class="help-kbd">Cmd/Ctrl</span> + <span class="help-kbd">S</span> saves the current project.</li>
+          <li><span class="help-kbd">Cmd/Ctrl</span> + <span class="help-kbd">Z</span> undoes the latest editor change.</li>
+          <li><span class="help-kbd">Esc</span> closes open modals.</li>
+        </ul>
+      </div>
     </div>
   </div>
 </div>
@@ -1359,10 +1429,13 @@ function showDashboard() {
   showView('dashboard');
 }
 function showSettings() {
+  console.log('Showing settings page');
   document.body.classList.remove('editor-mode');
   loadSettingsForm();
   updateStorageInfo();
-  loadDeploymentHistory();
+  // Clear deployment history cache and force refresh
+  document.getElementById('deployment-history').innerHTML = '<div class="text-muted text-sm">Loading deployment history...</div>';
+  setTimeout(() => loadDeploymentHistory(true), 100); // Small delay to ensure DOM is ready
   showView('settings');
 }
 function exitEditor() {
@@ -1513,7 +1586,7 @@ async function importProjectZip(file) {
   const zip = await JSZip.loadAsync(file);
   const manifestPath = Object.keys(zip.files).find(path => path.endsWith(BUILDER_MANIFEST_FILE));
   if (!manifestPath) {
-    throw new Error('This ZIP is not in the Functional Websites builder format. Upload a ZIP exported from this sitebuilder.');
+    return importWebsiteZip(file, zip);
   }
 
   const manifestRaw = await zip.file(manifestPath).async('string');
@@ -1563,6 +1636,169 @@ async function importProjectZip(file) {
   openEditor(id);
 }
 
+function extractBodyHtml(html) {
+  const bodyMatch = html.match(/<body[^>]*>([\s\S]*)<\/body>/i);
+  if (bodyMatch) return bodyMatch[1].trim();
+  const htmlMatch = html.match(/<html[^>]*>[\s\S]*<body[^>]*>([\s\S]*)<\/body>/i);
+  if (htmlMatch) return htmlMatch[1].trim();
+  return html.trim();
+}
+
+function getZipRootPrefix(paths) {
+  const tops = paths
+    .filter(p => p && p.indexOf('/') >= 0)
+    .map(p => p.split('/')[0]);
+  if (!tops.length) return '';
+  const unique = [...new Set(tops)];
+  return unique.length === 1 ? unique[0] + '/' : '';
+}
+
+function pathWithoutRoot(path, root) {
+  return root && path.startsWith(root) ? path.slice(root.length) : path;
+}
+
+function findZipEntry(zip, root, relativePath) {
+  return zip.file(root + relativePath) || zip.file(relativePath);
+}
+
+async function importWebsiteZip(file, zip) {
+  console.log('Starting website ZIP import for file:', file.name);
+  const filenames = Object.keys(zip.files).filter(path => !zip.files[path].dir);
+  console.log('ZIP contains files:', filenames);
+  const root = getZipRootPrefix(filenames);
+  console.log('Detected root prefix:', root);
+
+  // Look for HTML files, preferring index.html at root level
+  const allHtmlFiles = filenames.filter(path => ['.html', '.htm'].some(ext => path.toLowerCase().endsWith(ext)));
+  console.log('All HTML files in ZIP:', allHtmlFiles);
+
+  // Try to find index.html first
+  let indexFile = allHtmlFiles.find(path => pathWithoutRoot(path, root).toLowerCase() === 'index.html');
+  if (!indexFile) {
+    // Look for any index file
+    indexFile = allHtmlFiles.find(path => pathWithoutRoot(path, root).toLowerCase().startsWith('index'));
+  }
+
+  const htmlFiles = [];
+  if (indexFile) {
+    htmlFiles.push(pathWithoutRoot(indexFile, root));
+  }
+  // Add other HTML files, excluding index files we've already added
+  allHtmlFiles.forEach(path => {
+    const relative = pathWithoutRoot(path, root);
+    if (relative.toLowerCase() !== 'index.html' && !relative.toLowerCase().startsWith('index')) {
+      htmlFiles.push(relative);
+    }
+  });
+
+  console.log('Selected HTML files for import:', htmlFiles);
+  if (!htmlFiles.length) {
+    throw new Error('No HTML files were found in this ZIP. Import requires at least one HTML page.');
+  }
+
+  // Look for CSS and JS files more broadly
+  const cssFiles = filenames
+    .map(path => ({ full: path, relative: pathWithoutRoot(path, root) }))
+    .filter(entry => entry.relative.toLowerCase().endsWith('.css') && !entry.relative.includes('/'));
+  const jsFiles = filenames
+    .map(path => ({ full: path, relative: pathWithoutRoot(path, root) }))
+    .filter(entry => entry.relative.toLowerCase().endsWith('.js') && !entry.relative.includes('/'));
+  console.log('Found CSS files:', cssFiles.map(f => f.relative));
+  console.log('Found JS files:', jsFiles.map(f => f.relative));
+  const imageFiles = filenames
+    .map(path => ({ full: path, relative: pathWithoutRoot(path, root) }))
+    .filter(entry => /\.(png|jpe?g|gif|svg|webp)$/i.test(entry.relative));
+
+  const imageMap = [];
+  for (const imgEntry of imageFiles) {
+    const entry = zip.file(imgEntry.full);
+    if (!entry) continue;
+    const data = await entry.async('base64');
+    imageMap.push({ name: imgEntry.relative.split('/').pop(), dataURL: `data:image/${imgEntry.relative.split('.').pop().toLowerCase()};base64,${data}` });
+  }
+
+  let globalCSS = '';
+  if (cssFiles.length) {
+    try {
+      console.log('Reading CSS from:', cssFiles[0].full);
+      globalCSS = await zip.file(cssFiles[0].full).async('string');
+      console.log('CSS content length:', globalCSS.length);
+    } catch (e) {
+      console.error('Error reading CSS:', e);
+      globalCSS = '';
+    }
+  }
+
+  let globalJS = '';
+  if (jsFiles.length) {
+    try {
+      console.log('Reading JS from:', jsFiles[0].full);
+      globalJS = await zip.file(jsFiles[0].full).async('string');
+      console.log('JS content length:', globalJS.length);
+    } catch (e) {
+      console.error('Error reading JS:', e);
+      globalJS = '';
+    }
+  }
+
+  const pages = [];
+  for (const htmlPath of htmlFiles) {
+    const fullPath = root + htmlPath;
+    console.log('Processing HTML file:', htmlPath, 'full path:', fullPath);
+    const entry = findZipEntry(zip, root, htmlPath);
+    if (!entry) {
+      console.warn('Could not find entry for path:', fullPath, 'or relative path:', htmlPath);
+      continue;
+    }
+    let html = await entry.async('string');
+    console.log('Read HTML content, length:', html.length);
+    const pageName = htmlPath.toLowerCase() === 'index.html'
+      ? 'Home'
+      : htmlPath.replace(/\.[^.]+$/, '').replace(/\//g, ' ').replace(/[-_]/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+    const slug = htmlPath.toLowerCase() === 'index.html'
+      ? 'index'
+      : htmlPath.replace(/\.html?$/i, '').replace(/[\/\s]+/g, '-').toLowerCase();
+    const content = extractBodyHtml(html);
+    console.log('Extracted content length:', content.length);
+    pages.push({ id: uid(), name: pageName, slug: slug || 'page-' + (pages.length + 1), blocks: [{ id: uid(), type: 'text', props: { content } }], meta: {} });
+  }
+
+  if (!pages.length) {
+    throw new Error('No importable HTML pages could be read from this ZIP.');
+  }
+
+  const importedName = file.name.replace(/\.zip$/i, '').replace(/[-_]/g, ' ');
+  const now = Date.now();
+  const data = {
+    name: importedName,
+    brandName: importedName,
+    globalCSS: globalCSS || `/* Imported site global CSS */`,
+    globalJS: globalJS || `// Imported site global JS`,
+    meta: { description: '', keywords: '', author: '', favicon: '', ogType: 'website', ogImage: '', twitterCard: 'summary_large_image' },
+    brand: {},
+    images: imageMap,
+    templates: [],
+    navbars: {},
+    pages
+  };
+
+  console.log('Created project data:', {
+    name: importedName,
+    pagesCount: pages.length,
+    imagesCount: imageMap.length,
+    hasCSS: !!globalCSS,
+    hasJS: !!globalJS
+  });
+
+  const id = uid();
+  STATE.projects.push({ id, name: importedName, created: now, modified: now });
+  saveProjectsMeta();
+  saveProjectData(id, data);
+  renderDashboard();
+  toast(`Imported "${importedName}" from GitHub`, 'success');
+  openEditor(id);
+}
+
 async function startGithubImport() {
   const url = document.getElementById('github-import-url').value.trim();
   const branch = document.getElementById('github-import-branch').value.trim() || 'main';
@@ -1579,20 +1815,81 @@ async function startGithubImport() {
   closeModal('modal-github-import');
   toast('Importing from GitHub...', 'info');
 
+  // Clear any cached data
+  console.clear();
+  console.log('=== GITHUB IMPORT START ===');
+  console.log('Importing from:', `${owner}/${repo}/${branch}`);
+
   try {
-    const token = LS.get('github')?.token;
-    const headers = token ? { Authorization: `token ${token}` } : {};
-    const zipUrl = `https://api.github.com/repos/${owner}/${repo}/zipball/${branch}`;
-    const response = await fetch(zipUrl, { headers });
-    if (!response.ok) {
-      throw new Error(`Failed to fetch repo: ${response.status}`);
+    const gh = LS.get('github') || {};
+    console.log('GitHub auth status:', {
+      verified: gh.verified,
+      hasToken: !!gh.token,
+      login: gh.login,
+      owner: gh.owner
+    });
+
+    // First check if the repo exists and is accessible
+    const repoCheckUrl = `https://api.github.com/repos/${owner}/${repo}`;
+    console.log('Checking repo accessibility:', repoCheckUrl);
+    const repoCheck = gh.token ? await ghFetch(repoCheckUrl, gh.token) : await fetch(repoCheckUrl);
+    if (!repoCheck.ok) {
+      const errorBody = await repoCheck.text();
+      console.error('Repo check failed:', errorBody);
+      throw new Error(`Repository not found or not accessible: ${repoCheck.status} ${repoCheck.statusText}`);
     }
-    const blob = await response.blob();
-    const file = new File([blob], `${repo}.zip`, { type: 'application/zip' });
+    const repoData = await repoCheck.json();
+    console.log('Repo data:', { private: repoData.private, default_branch: repoData.default_branch });
+
+    const blob = await downloadGithubRepoZip(owner, repo, branch, gh.token);
+    console.log('Blob received, size:', blob.size);
+
+    const file = new File([blob], `${owner}-${repo}-${branch}.zip`, { type: 'application/zip' });
     await importProjectZip(file);
+    console.log('=== GITHUB IMPORT SUCCESS ===');
   } catch (e) {
-    toast(e.message || 'GitHub import failed', 'error');
+    console.error('=== GITHUB IMPORT FAILED ===');
+    console.error('Error:', e.message);
+    toast(`GitHub import failed: ${e.message}`, 'error');
   }
+}
+
+async function downloadGithubRepoZip(owner, repo, branch, token) {
+  const headers = token ? githubHeaders(token) : { 'Accept': 'application/vnd.github.v3+json' };
+  const branchRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/branches/${encodeURIComponent(branch)}`, { headers });
+  if (!branchRes.ok) {
+    throw new Error(await githubErrorMessage(branchRes, `Could not load branch "${branch}"`));
+  }
+  const branchData = await branchRes.json();
+  const treeSha = branchData.commit?.commit?.tree?.sha || branchData.commit?.sha;
+  if (!treeSha) throw new Error(`Could not find a tree for branch "${branch}"`);
+
+  const treeRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/git/trees/${treeSha}?recursive=1`, { headers });
+  if (!treeRes.ok) {
+    throw new Error(await githubErrorMessage(treeRes, 'Could not load repository file tree'));
+  }
+  const treeData = await treeRes.json();
+  if (treeData.truncated) {
+    toast('GitHub returned a truncated file tree; very large repos may import incompletely.', 'error');
+  }
+
+  const zip = new JSZip();
+  const rootFolder = zip.folder(`${owner}-${repo}-${branch}`);
+  const files = (treeData.tree || []).filter(item => item.type === 'blob' && item.path);
+  if (!files.length) throw new Error('No files found in this repository branch.');
+
+  for (const item of files) {
+    const blobRes = await fetch(item.url, { headers });
+    if (!blobRes.ok) {
+      throw new Error(await githubErrorMessage(blobRes, `Could not download ${item.path}`));
+    }
+    const blobData = await blobRes.json();
+    if (blobData.encoding === 'base64' && blobData.content) {
+      rootFolder.file(item.path, blobData.content.replace(/\s/g, ''), { base64: true });
+    }
+  }
+
+  return zip.generateAsync({ type: 'blob' });
 }
 
 let _renameId = null;
@@ -3159,7 +3456,8 @@ function clearAllData() {
   toast('All data cleared', 'info');
 }
 
-async function loadDeploymentHistory() {
+async function loadDeploymentHistory(forceRefresh = false) {
+  console.log('Loading deployment history, forceRefresh:', forceRefresh);
   const gh = LS.get('github') || {};
   const repoInfo = LS.get('lastDeployRepo') || {};
   if (!gh.verified) {
@@ -3168,41 +3466,75 @@ async function loadDeploymentHistory() {
   }
   const owner = repoInfo.owner || gh.owner || gh.login;
   const repo = repoInfo.repo || 'my-website';
+  console.log('Loading history for repo:', owner + '/' + repo);
   try {
-    const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/releases`, {
+    // Look for versioned ZIPs in the repo instead of release assets
+    const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/versioned-zips`, {
       headers: githubHeaders(gh.token)
     });
-    if (!res.ok) throw new Error('Failed to load releases');
-    const releases = await res.json();
-    if (!releases.length) {
-      document.getElementById('deployment-history').textContent = 'No releases found.';
+    if (!res.ok) {
+      if (res.status === 404) {
+        document.getElementById('deployment-history').innerHTML = '<div class="text-muted text-sm">No versioned deployments found.</div>';
+        return;
+      }
+      throw new Error('Failed to load versioned ZIPs');
+    }
+    const files = await res.json();
+    const zipFiles = files.filter(f => f.name.endsWith('.zip')).sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
+    console.log('Found', zipFiles.length, 'ZIP files');
+    if (!zipFiles.length) {
+      document.getElementById('deployment-history').innerHTML = '<div class="text-muted text-sm">No versioned deployments found.</div>';
       return;
     }
-    const html = releases.slice(0,5).map(r => {
-      const zipAsset = r.assets.find(a => a.name.endsWith('.zip'));
+    const timestamp = Date.now();
+    const html = `<div class="text-muted text-sm" style="margin-bottom:8px;">Last updated: ${new Date(timestamp).toLocaleTimeString()} (v2.0)</div>` + zipFiles.slice(0,5).map(f => {
+      const version = f.name.replace(/\.zip$/, '').replace(/^[^-]*-/, '');
       return `
         <div style="margin-bottom:8px;padding:8px;border:1px solid var(--border);border-radius:6px;">
-          <div style="font-weight:600;">${r.tag_name}</div>
-          <div class="text-muted text-sm">${new Date(r.created_at).toLocaleString()}</div>
-          ${zipAsset ? `<button class="btn btn-secondary btn-sm" onclick="restoreFromRelease('${zipAsset.browser_download_url}')">Restore</button>` : '<span class="text-muted text-sm">No ZIP asset</span>'}
+          <div style="font-weight:600;">${f.name}</div>
+          <div class="text-muted text-sm">${new Date(f.created_at).toLocaleString()}</div>
+          <button class="btn btn-secondary btn-sm" onclick="restoreFromRepoZip('${owner}', '${repo}', '${f.path}', '${gh.token}', ${timestamp})">Restore</button>
         </div>
       `;
     }).join('');
     document.getElementById('deployment-history').innerHTML = html;
+    console.log('Deployment history updated successfully');
   } catch(e) {
+    console.error('Deployment history error:', e);
     document.getElementById('deployment-history').textContent = 'Error loading history: ' + e.message;
   }
 }
 
-async function restoreFromRelease(zipUrl) {
-  toast('Restoring from release...', 'info');
+async function restoreFromRepoZip(owner, repo, path, token, timestamp = 0) {
+  console.log('Starting restore from repo ZIP:', { owner, repo, path, timestamp });
+  toast('Restoring from versioned ZIP...', 'info');
   try {
-    const res = await fetch(zipUrl);
-    if (!res.ok) throw new Error('Failed to download release');
-    const blob = await res.blob();
-    const file = new File([blob], 'release.zip', { type: 'application/zip' });
+    // Use GitHub API to get the file content
+    const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${encodeURIComponent(path)}`;
+    console.log('Fetching from API URL:', apiUrl);
+    const res = await fetch(apiUrl, {
+      headers: githubHeaders(token)
+    });
+    if (!res.ok) {
+      console.error('API fetch failed:', res.status, res.statusText);
+      throw new Error('Failed to fetch ZIP from repo');
+    }
+    const data = await res.json();
+    console.log('Received data, content length:', data.content?.length);
+    // Convert base64 to blob
+    const byteCharacters = atob(data.content);
+    const byteNumbers = new Array(byteCharacters.length);
+    for (let i = 0; i < byteCharacters.length; i++) {
+      byteNumbers[i] = byteCharacters.charCodeAt(i);
+    }
+    const byteArray = new Uint8Array(byteNumbers);
+    const blob = new Blob([byteArray], { type: 'application/zip' });
+    const file = new File([blob], path.split('/').pop(), { type: 'application/zip' });
+    console.log('Created file blob, size:', blob.size);
     await importProjectZip(file);
+    console.log('Import completed successfully');
   } catch(e) {
+    console.error('Restore failed:', e);
     toast('Restore failed: ' + e.message, 'error');
   }
 }
@@ -3809,6 +4141,9 @@ function openModal(id) {
 function closeModal(id) {
   document.getElementById(id).classList.add('hidden');
 }
+function openHelpDocs() {
+  openModal('modal-help-docs');
+}
 
 // Close modal on overlay click
 document.querySelectorAll('.modal-overlay').forEach(overlay => {
@@ -3842,7 +4177,8 @@ function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 // ============================================================
 // INIT
 // ============================================================
-(function init() {
+document.addEventListener('DOMContentLoaded', function init() {
+  console.log('DOM loaded, initializing app');
   loadProjects();
   renderDashboard();
 
@@ -3878,7 +4214,7 @@ function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
     });
     ro.observe(iframe);
   }
-})();
+});
 </script>
 </body>
 </html>
