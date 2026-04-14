@@ -123,6 +123,16 @@ select.input { appearance: none; }
 .block-btn .block-icon { width: 28px; height: 28px; border-radius: 5px; background: var(--bg3); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
 .blocks-section { margin-bottom: 4px; }
 .blocks-section-label { padding: 6px 12px 2px; font-size: 10px; text-transform: uppercase; letter-spacing: .1em; color: var(--text2); }
+.blocks-section-tools { padding: 4px 8px 8px; display: flex; gap: 6px; flex-wrap: wrap; }
+.block-meta { display: block; font-size: 10px; color: var(--text2); margin-top: 2px; }
+.library-empty { padding: 8px 12px 12px; color: var(--text2); font-size: 12px; line-height: 1.5; }
+.library-stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin: 12px 0 16px; }
+.library-stat { background: var(--bg3); border: 1px solid var(--border); border-radius: 8px; padding: 12px; }
+.library-stat strong { display: block; font-size: 20px; margin-bottom: 4px; }
+.library-card { border: 1px solid var(--border); border-radius: 8px; padding: 12px; background: var(--bg3); margin-bottom: 10px; }
+.library-card-title { font-weight: 600; margin-bottom: 4px; }
+.library-card-meta { color: var(--text2); font-size: 12px; line-height: 1.5; }
+.library-card-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
 /* Left panel tabs (Add / Layout) */
 .left-tabs { display: flex; border-bottom: 1px solid var(--border); flex-shrink: 0; }
 .left-tab { flex: 1; padding: 8px 4px; border: none; background: transparent; color: var(--text2); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; cursor: pointer; transition: all .1s; }
@@ -144,7 +154,7 @@ select.input { appearance: none; }
 .pages-list { padding: 8px; display: flex; flex-direction: column; gap: 2px; }
 .page-item { display: flex; align-items: center; padding: 6px 8px; border-radius: 6px; cursor: pointer; gap: 6px; }
 .page-item:hover { background: var(--bg3); }
-.page-item.active { background: rgba(255,255,255,.08); color: var(--accent); }
+.page-item.active { background: rgba(255,255,255,.08); color: var(--text); }
 .page-item-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .page-item-action { opacity: 0; transition: opacity .1s; }
 .page-item:hover .page-item-action { opacity: 1; }
@@ -246,7 +256,7 @@ select.input { appearance: none; }
   }
 
   /* Dashboard */
-  .dash-header { padding: 0 12px; }
+  .dash-header { padding: 0 12px; height: 56px; }
   .dash-logo { font-size: 15px; }
   .dash-body { padding: 16px 12px; }
   .projects-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -352,13 +362,7 @@ select.input { appearance: none; }
 <div id="view-dashboard" class="active">
   <header class="dash-header">
     <div class="dash-logo"><span>Functional</span> Websites</div>
-    <div class="ml-auto flex gap-2">
-      <button class="btn btn-ghost btn-sm" onclick="openHelpDocs()">? Help</button>
-      <button class="btn btn-ghost btn-sm" onclick="showSettings()">⚙ Settings</button>
-      <button class="btn btn-secondary btn-sm" onclick="triggerExistingSiteUpload()">⇪ Upload Existing Site</button>
-      <button class="btn btn-secondary btn-sm" onclick="openGithubImportModal()">🐙 Import from GitHub</button>
-      <button class="btn btn-primary btn-sm" onclick="openNewProjectModal()">+ New Website</button>
-    </div>
+    <button class="btn btn-ghost btn-sm ml-auto" onclick="showSettings()">⚙ Settings</button>
   </header>
   <div class="dash-body">
     <div class="dash-section-title">My Websites</div>
@@ -379,6 +383,19 @@ select.input { appearance: none; }
     <span style="font-weight:600;font-size:16px;">Settings</span>
   </header>
   <div class="settings-body">
+    <div class="settings-section">
+      <div class="settings-section-title">Builder Tools</div>
+      <div class="settings-section-desc">Quick access to builder resources that were removed from the mobile home header.</div>
+      <div class="flex gap-2" style="flex-wrap:wrap;">
+        <button class="btn btn-secondary btn-sm" onclick="openHelpDocs()">? Help</button>
+        <button class="btn btn-secondary btn-sm" onclick="openLibraryModal()">▦ Custom Library</button>
+        <button class="btn btn-secondary btn-sm" onclick="triggerExistingSiteUpload()">⇪ Upload Existing Site</button>
+        <button class="btn btn-primary btn-sm" onclick="openNewProjectModal()">+ New Website</button>
+      </div>
+      <div class="flex gap-2" style="margin-top:8px;flex-wrap:wrap;">
+        <button class="btn btn-secondary btn-sm" onclick="openGithubImportModal()">🐙 Import From GitHub</button>
+      </div>
+    </div>
     <!-- GitHub -->
     <div class="settings-section">
       <div class="flex items-center gap-2" style="margin-bottom:4px">
@@ -450,6 +467,7 @@ select.input { appearance: none; }
       <button class="editor-mode-tab active" data-mode="visual" onclick="switchEditorMode('visual')">Visual</button>
       <button class="editor-mode-tab" data-mode="code" onclick="switchEditorMode('code')">Code</button>
     </div>
+    <button class="btn btn-secondary btn-sm d-only" onclick="openLibraryModal()">▦ Library</button>
     <button class="btn btn-secondary btn-sm d-only" onclick="openImageLibrary(null)">🖼 Images</button>
     <button class="btn btn-secondary btn-sm d-only" onclick="openHelpDocs()">? Help</button>
     <button class="btn btn-secondary btn-sm d-only" onclick="previewProject()">👁 Preview</button>
@@ -465,6 +483,7 @@ select.input { appearance: none; }
     <button class="mob-overflow-item" onclick="closeMobileOverflow();undo()" id="mob-btn-undo">↩ &nbsp;Undo</button>
     <button class="mob-overflow-item" onclick="closeMobileOverflow();redo()" id="mob-btn-redo">↪ &nbsp;Redo</button>
     <button class="mob-overflow-item divider" onclick="closeMobileOverflow();openImageLibrary(null)">🖼 &nbsp;Images</button>
+    <button class="mob-overflow-item" onclick="closeMobileOverflow();openLibraryModal()">▦ &nbsp;Custom Library</button>
     <button class="mob-overflow-item" onclick="closeMobileOverflow();openHelpDocs()">? &nbsp;Help / Docs</button>
     <button class="mob-overflow-item" onclick="closeMobileOverflow();previewProject()">👁 &nbsp;Preview</button>
     <button class="mob-overflow-item" onclick="closeMobileOverflow();downloadZip()">⬇ &nbsp;Download ZIP</button>
@@ -623,6 +642,9 @@ select.input { appearance: none; }
         <option value="docs">Documentation</option>
       </select>
     </div>
+    <div id="new-project-template-note" class="text-muted text-sm" style="margin-top:-4px;margin-bottom:8px;">
+      Install custom website templates from the Custom Library to offer premium starter sites.
+    </div>
     <div class="modal-actions">
       <button class="btn btn-secondary" onclick="closeModal('modal-new-project')">Cancel</button>
       <button class="btn btn-primary" onclick="createProject()">Create Website</button>
@@ -742,6 +764,46 @@ select.input { appearance: none; }
     <div class="modal-actions">
       <button class="btn btn-secondary" onclick="closeModal('modal-block-edit')">Cancel</button>
       <button class="btn btn-primary" onclick="applyBlockEdit()">Apply</button>
+    </div>
+  </div>
+</div>
+
+<!-- Custom Library Modal -->
+<div id="modal-library" class="modal-overlay hidden">
+  <div class="modal" style="width:720px;max-height:90vh;">
+    <div class="flex items-center gap-2" style="margin-bottom:8px;">
+      <div class="modal-title" style="margin:0;">Custom Library</div>
+      <div class="ml-auto flex gap-2">
+        <button class="btn btn-secondary btn-sm" onclick="document.getElementById('library-import-input').click()">⇪ Import Pack</button>
+      </div>
+    </div>
+    <div class="text-muted text-sm" style="line-height:1.6;margin-bottom:12px;">
+      Install downloadable block packs and website templates, or export your own packs to sell and share.
+    </div>
+    <input type="file" id="library-import-input" accept=".json,.fwlib,.fwpack,application/json" style="display:none" onchange="importLibraryPack(this)">
+    <div class="library-stat-grid">
+      <div class="library-stat"><strong id="library-template-count">0</strong><span>Custom Website Templates</span></div>
+      <div class="library-stat"><strong id="library-block-count">0</strong><span>Custom Blocks</span></div>
+    </div>
+    <div class="settings-section" style="padding:14px;margin-bottom:14px;">
+      <div class="settings-section-title" style="font-size:14px;">Export New Product</div>
+      <div class="settings-section-desc" style="margin-bottom:12px;">Create a portable pack from the current editor state.</div>
+      <div class="library-card-actions" style="margin-top:0;">
+        <button class="btn btn-secondary btn-sm" onclick="saveCurrentPageAsLibraryTemplate()">Save Current Page As Template</button>
+        <button class="btn btn-secondary btn-sm" onclick="saveSelectedBlockToLibrary()">Save Selected Block As Custom Block</button>
+        <button class="btn btn-primary btn-sm" onclick="exportLibraryBundle()">Download My Library Bundle</button>
+      </div>
+    </div>
+    <div>
+      <div class="settings-section-title" style="font-size:14px;margin-bottom:8px;">Installed Website Templates</div>
+      <div id="library-template-list"></div>
+    </div>
+    <div style="margin-top:14px;">
+      <div class="settings-section-title" style="font-size:14px;margin-bottom:8px;">Installed Block Packs</div>
+      <div id="library-block-list"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal('modal-library')">Close</button>
     </div>
   </div>
 </div>
@@ -896,6 +958,7 @@ const STATE = {
 
 const BUILDER_MANIFEST_FILE = 'functional-websites-manifest.json';
 const BUILDER_PROJECT_FILE = 'functional-websites-project.json';
+const LIBRARY_PACK_VERSION = 1;
 
 // ============================================================
 // UNDO / REDO  (max 50 states, snapshots everything except images)
@@ -1004,6 +1067,72 @@ function saveProjectData(id, data) {
   LS.set('proj_'+id, data);
 }
 
+function normalizeLibraryData(data = {}) {
+  const library = {
+    pageTemplates: Array.isArray(data.pageTemplates) ? data.pageTemplates : [],
+    blocks: Array.isArray(data.blocks) ? data.blocks : []
+  };
+
+  library.pageTemplates = library.pageTemplates
+    .filter(item => item && item.projectData)
+    .map(item => ({
+      id: item.id || uid(),
+      name: item.name || 'Custom Website Template',
+      description: item.description || '',
+      author: item.author || '',
+      priceLabel: item.priceLabel || '',
+      source: item.source || 'Imported',
+      projectData: JSON.parse(JSON.stringify(item.projectData))
+    }));
+
+  library.blocks = library.blocks
+    .filter(item => item && item.block)
+    .map(item => ({
+      id: item.id || uid(),
+      name: item.name || 'Custom Block',
+      description: item.description || '',
+      category: item.category || 'Custom',
+      author: item.author || '',
+      priceLabel: item.priceLabel || '',
+      source: item.source || 'Imported',
+      block: JSON.parse(JSON.stringify(item.block))
+    }));
+
+  return library;
+}
+
+function getLibraryData() {
+  return normalizeLibraryData(LS.get('library') || {});
+}
+
+function saveLibraryData(library) {
+  LS.set('library', normalizeLibraryData(library));
+}
+
+function mergeLibraryData(nextLibrary) {
+  const current = getLibraryData();
+  const incoming = normalizeLibraryData(nextLibrary);
+  const merged = {
+    pageTemplates: [...current.pageTemplates],
+    blocks: [...current.blocks]
+  };
+
+  incoming.pageTemplates.forEach(item => {
+    const idx = merged.pageTemplates.findIndex(existing => existing.name === item.name);
+    if (idx >= 0) merged.pageTemplates[idx] = item;
+    else merged.pageTemplates.push(item);
+  });
+
+  incoming.blocks.forEach(item => {
+    const idx = merged.blocks.findIndex(existing => existing.name === item.name);
+    if (idx >= 0) merged.blocks[idx] = item;
+    else merged.blocks.push(item);
+  });
+
+  saveLibraryData(merged);
+  return merged;
+}
+
 // ============================================================
 // PROJECT DATA STRUCTURE
 // ============================================================
@@ -1026,6 +1155,8 @@ const BRAND_COLORS = [
 
 let _brandContext = null;
 let _projectNameContext = '';
+let _canvasBodyResizeObserver = null;
+let _lastCanvasHeight = 0;
 
 function createBlankProjectData(name, setup = {}) {
   const brand = {};
@@ -1089,6 +1220,27 @@ function applyTemplate(data, template) {
   return data;
 }
 
+function applyLibraryProjectTemplate(baseData, templateEntry) {
+  const incoming = JSON.parse(JSON.stringify(templateEntry.projectData || {}));
+  const brandName = baseData.brandName || baseData.name;
+  const merged = Object.assign({}, baseData, incoming);
+  const mergedMeta = Object.assign({}, incoming.meta || {});
+  Object.entries(baseData.meta || {}).forEach(([key, value]) => {
+    if (value !== '' && value != null) mergedMeta[key] = value;
+  });
+  merged.name = baseData.name;
+  merged.brandName = brandName;
+  merged.brand = Object.assign({}, incoming.brand || {}, baseData.brand || {});
+  merged.meta = mergedMeta;
+  merged.images = Array.isArray(incoming.images) ? incoming.images : [];
+  merged.templates = Array.isArray(incoming.templates) ? incoming.templates : [];
+  merged.navbars = incoming.navbars || {};
+  merged.pages = Array.isArray(incoming.pages) && incoming.pages.length
+    ? incoming.pages
+    : JSON.parse(JSON.stringify(baseData.pages));
+  return merged;
+}
+
 // ============================================================
 // BLOCK DEFINITIONS
 // ============================================================
@@ -1124,6 +1276,12 @@ function mkBlock(type, props = {}) {
     cta: { bgColor: brand.accent || '#7c6af7', textColor: '#ffffff', padding: '80px 20px', heading: 'Ready to get started?', subheading: 'Join thousands of happy users today.', buttonText: 'Get Started Free', buttonHref: '#', btnBg: '#ffffff', btnColor: brand.accent || '#7c6af7' },
     footer: { bgColor: brand.dark || '#1a1a1a', textColor: '#aaaaaa', linkColor: '#cccccc', brand: projectBrandName, tagline: 'Building the web.', copyright: `© ${new Date().getFullYear()} ${projectBrandName}. All rights reserved.` },
     form: { bgColor: '#f8f8f8', padding: '60px 20px', title: 'Contact Us', submitText: 'Send Message', action: '#', btnBg: brand.accent || '#7c6af7', btnColor: '#ffffff' },
+    youtubeEmbed: { title: 'Featured Video', description: 'Use a YouTube video to explain your offer or show your work.', videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', maxWidth: '960px', aspectRatio: '16 / 9', autoplay: false, showControls: true, privacyMode: true, rounded: true, sectionBg: '#ffffff' },
+    testimonialWall: { title: 'What Customers Say', intro: 'Social proof helps visitors trust you faster. Add a few real reviews to show the quality of your work.', bgColor: '#f5f8fc', padding: '80px 20px', maxWidth: '1100px', columns: '3', showStars: true, highlightFirst: false, testimonials: [
+      { name: 'Jordan M.', role: 'Homeowner', quote: 'Fast response, fair pricing, and clear communication from start to finish.', rating: '5' },
+      { name: 'Taylor R.', role: 'Local Customer', quote: 'Professional, efficient, and respectful of our home. We would absolutely hire them again.', rating: '5' },
+      { name: 'Avery S.', role: 'Repeat Client', quote: 'One of the easiest contractor experiences we have had. Everything felt organized and trustworthy.', rating: '5' }
+    ]},
     html: { code: '<div style="padding:20px;background:#f0f0f0;border-radius:8px;text-align:center;">\n  <p>Custom HTML block. Click Properties to edit.</p>\n</div>' },
   };
   // Track which props are linked to brand color keys so they auto-update when brand changes
@@ -1226,6 +1384,21 @@ function _renderBlockInner(block, editing = false, ctx = null) {
   ${p.caption ? `<p style="font-size:13px;color:#888;margin-top:6px;">${p.caption}</p>` : ''}
 </div>`;
     }
+    case 'youtubeEmbed': {
+      const embedUrl = toYouTubeEmbedUrl(p.videoUrl, p.privacyMode, p.autoplay, p.showControls);
+      const radius = p.rounded ? '20px' : '0';
+      return `<section ${sel} style="padding:72px 20px;background:${p.sectionBg||'#ffffff'};">
+  <div style="max-width:${p.maxWidth||'960px'};margin:0 auto;">
+    ${(p.title || p.description) ? `<div style="text-align:center;margin-bottom:22px;">
+      ${p.title ? `<h2 style="margin:0 0 10px;font-size:clamp(28px,4vw,42px);color:#13293d;">${p.title}</h2>` : ''}
+      ${p.description ? `<p style="margin:0 auto;max-width:700px;line-height:1.7;color:#5a6b7d;">${p.description}</p>` : ''}
+    </div>` : ''}
+    <div style="position:relative;width:100%;aspect-ratio:${p.aspectRatio||'16 / 9'};border-radius:${radius};overflow:hidden;box-shadow:0 28px 70px rgba(19,41,61,.18);background:#000;">
+      <iframe src="${escAttr(embedUrl)}" title="${escAttr(p.title||'YouTube Video')}" style="position:absolute;inset:0;width:100%;height:100%;border:0;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+    </div>
+  </div>
+</section>`;
+    }
     case 'button': {
       const sizes = { small:'10px 20px', medium:'12px 28px', large:'16px 40px' };
       const pad = sizes[p.size||'medium'];
@@ -1288,6 +1461,33 @@ function _renderBlockInner(block, editing = false, ctx = null) {
   <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;max-width:1100px;margin:0 auto;">${feats}</div>
 </section>`;
     }
+    case 'testimonialWall': {
+      const cols = Math.min(4, Math.max(1, Number(p.columns || 3) || 3));
+      const cards = (p.testimonials||[]).map((item, index) => {
+        const highlighted = p.highlightFirst && index === 0;
+        const bg = highlighted ? '#13293d' : '#ffffff';
+        const text = highlighted ? 'rgba(255,255,255,.84)' : '#44576a';
+        const strong = highlighted ? '#ffffff' : '#13293d';
+        const muted = highlighted ? 'rgba(255,255,255,.64)' : '#6b7d8f';
+        const border = highlighted ? '#13293d' : '#dbe6f1';
+        const stars = '★★★★★'.slice(0, Math.min(5, Math.max(0, Number(item.rating || 5) || 5)));
+        return `<div style="background:${bg};border:1px solid ${border};border-radius:18px;padding:24px;box-shadow:0 16px 40px rgba(19,41,61,.07);">
+  ${p.showStars ? `<div style="font-size:18px;margin-bottom:10px;color:${highlighted ? '#fbbf24' : '#f59e0b'};">${stars || '★★★★★'}</div>` : ''}
+  <p style="margin:0 0 14px;line-height:1.7;color:${text};">"${item.quote||''}"</p>
+  <strong style="display:block;color:${strong};">${item.name||'Customer Name'}</strong>
+  <span style="color:${muted};font-size:13px;">${item.role||''}</span>
+</div>`;
+      }).join('');
+      return `<section ${sel} style="padding:${p.padding||'80px 20px'};background:${p.bgColor||'#f5f8fc'};">
+  <div style="max-width:${p.maxWidth||'1100px'};margin:0 auto;">
+    <div style="text-align:center;margin-bottom:28px;">
+      ${p.title ? `<h2 style="margin:0 0 10px;font-size:clamp(28px,4vw,42px);color:#13293d;">${p.title}</h2>` : ''}
+      ${p.intro ? `<p style="margin:0 auto;max-width:720px;line-height:1.7;color:#5a6b7d;">${p.intro}</p>` : ''}
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(${cols},minmax(0,1fr));gap:18px;">${cards}</div>
+  </div>
+</section>`;
+    }
     case 'cta': {
       return `<section ${sel} style="background:${p.bgColor||'#7c6af7'};color:${p.textColor||'#fff'};padding:${p.padding||'80px 20px'};text-align:center;">
   <h2 style="font-size:2.2em;margin:0 0 12px;">${p.heading||'Ready to get started?'}</h2>
@@ -1340,6 +1540,33 @@ function hexToRgb(hex) {
 
 function escCssUrl(s) {
   return String(s || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/[\n\r]/g, '');
+}
+
+function toYouTubeEmbedUrl(url, privacyMode = true, autoplay = false, showControls = true) {
+  const raw = String(url || '').trim();
+  if (!raw) return '';
+  let videoId = '';
+  try {
+    const parsed = new URL(raw);
+    if (parsed.hostname.includes('youtu.be')) {
+      videoId = parsed.pathname.replace(/\//g, '');
+    } else if (parsed.searchParams.get('v')) {
+      videoId = parsed.searchParams.get('v');
+    } else {
+      const parts = parsed.pathname.split('/').filter(Boolean);
+      const embedIndex = parts.findIndex(part => part === 'embed' || part === 'shorts');
+      if (embedIndex >= 0 && parts[embedIndex + 1]) videoId = parts[embedIndex + 1];
+    }
+  } catch (e) {
+    videoId = raw;
+  }
+  videoId = String(videoId || raw).replace(/[^a-zA-Z0-9_-]/g, '');
+  const host = privacyMode ? 'https://www.youtube-nocookie.com/embed/' : 'https://www.youtube.com/embed/';
+  const params = new URLSearchParams();
+  if (autoplay) params.set('autoplay', '1');
+  if (!showControls) params.set('controls', '0');
+  const qs = params.toString();
+  return `${host}${videoId}${qs ? '?' + qs : ''}`;
 }
 
 function buildMetaTags(projectData, page) {
@@ -1515,6 +1742,7 @@ function openNewProjectModal() {
   document.getElementById('new-project-page-bg').value = '#ffffff';
   document.getElementById('new-project-section-bg').value = '#f8f8f8';
   document.getElementById('new-project-text-dark').value = '#111111';
+  renderNewProjectTemplateOptions();
   document.getElementById('new-project-template').value = 'blank';
   openModal('modal-new-project');
   setTimeout(()=>document.getElementById('new-project-name').focus(),100);
@@ -1549,11 +1777,21 @@ function createProject() {
     btnPrimary: document.getElementById('new-project-accent').value
   };
   let data = createBlankProjectData(name, { brandName, author, description, brand: brandSetup });
-  _brandContext = data.brand;
-  _projectNameContext = data.brandName;
-  data = applyTemplate(data, template);
-  _brandContext = null;
-  _projectNameContext = '';
+  if (template.startsWith('library:')) {
+    const libraryId = template.slice('library:'.length);
+    const templateEntry = getLibraryData().pageTemplates.find(item => item.id === libraryId);
+    if (!templateEntry) {
+      toast('That custom template is no longer installed.', 'error');
+      return;
+    }
+    data = applyLibraryProjectTemplate(data, templateEntry);
+  } else {
+    _brandContext = data.brand;
+    _projectNameContext = data.brandName;
+    data = applyTemplate(data, template);
+    _brandContext = null;
+    _projectNameContext = '';
+  }
 
   const meta = { id, name, created: Date.now(), modified: Date.now() };
   STATE.projects.push(meta);
@@ -1563,6 +1801,35 @@ function createProject() {
   closeModal('modal-new-project');
   toast('Website created!', 'success');
   openEditor(id);
+}
+
+function renderNewProjectTemplateOptions() {
+  const select = document.getElementById('new-project-template');
+  const note = document.getElementById('new-project-template-note');
+  const library = getLibraryData();
+  const builtInValue = select.value || 'blank';
+
+  let html = `
+    <option value="blank">Blank</option>
+    <option value="landing">Landing Page</option>
+    <option value="blog">Blog / Article</option>
+    <option value="portfolio">Portfolio</option>
+    <option value="docs">Documentation</option>`;
+
+  if (library.pageTemplates.length) {
+    html += `<optgroup label="Custom Website Templates">`;
+    library.pageTemplates.forEach(item => {
+      const meta = item.priceLabel ? ` - ${item.priceLabel}` : '';
+      html += `<option value="library:${item.id}">${item.name}${meta}</option>`;
+    });
+    html += `</optgroup>`;
+    note.textContent = 'Installed premium or imported templates appear here and can be used like built-in starters.';
+  } else {
+    note.textContent = 'Install custom website templates from the Custom Library to offer premium starter sites.';
+  }
+
+  select.innerHTML = html;
+  if (select.querySelector(`option[value="${builtInValue}"]`)) select.value = builtInValue;
 }
 
 async function uploadExistingSite(input) {
@@ -2088,6 +2355,8 @@ function getBlockIcon(type) {
     cta: '⚡',
     footer: '▬',
     form: '✉',
+    youtubeEmbed: '▶',
+    testimonialWall: '★',
     html: '</>'
   }[type] || '•';
 }
@@ -2171,8 +2440,49 @@ function renderCanvas() {
         if (sel) sel.classList.add('selected');
       } catch(e) {}
     }
-    iframe.style.height = (iframe.contentDocument?.body?.scrollHeight || 600) + 'px';
+    setupCanvasAutoResize();
+    updateCanvasIframeHeight();
   };
+}
+
+function getCanvasContentHeight() {
+  const iframe = document.getElementById('canvas-iframe');
+  const doc = iframe?.contentDocument;
+  if (!doc) return 600;
+  const body = doc.body;
+  const html = doc.documentElement;
+  return Math.max(
+    body?.scrollHeight || 0,
+    body?.offsetHeight || 0,
+    html?.scrollHeight || 0,
+    html?.offsetHeight || 0,
+    600
+  );
+}
+
+function updateCanvasIframeHeight() {
+  const iframe = document.getElementById('canvas-iframe');
+  if (!iframe) return;
+  const nextHeight = getCanvasContentHeight();
+  if (Math.abs(nextHeight - _lastCanvasHeight) < 1) return;
+  _lastCanvasHeight = nextHeight;
+  iframe.style.height = nextHeight + 'px';
+}
+
+function setupCanvasAutoResize() {
+  const iframe = document.getElementById('canvas-iframe');
+  const doc = iframe?.contentDocument;
+  const body = doc?.body;
+  if (!iframe || !doc || !body) return;
+
+  if (_canvasBodyResizeObserver) _canvasBodyResizeObserver.disconnect();
+
+  _canvasBodyResizeObserver = new ResizeObserver(() => {
+    requestAnimationFrame(updateCanvasIframeHeight);
+  });
+
+  _canvasBodyResizeObserver.observe(body);
+  if (doc.documentElement) _canvasBodyResizeObserver.observe(doc.documentElement);
 }
 
 // Called from iframe
@@ -2716,6 +3026,45 @@ function buildPropsForm(block) {
       html += field('Button Color', 'btnBg', 'color');
       html += field('Button Text Color', 'btnColor', 'color');
       break;
+    case 'youtubeEmbed':
+      html += field('Title', 'title');
+      html += field('Description', 'description', 'textarea');
+      html += field('Video URL', 'videoUrl');
+      html += field('Max Width', 'maxWidth');
+      html += `<div class="field"><label class="label">Aspect Ratio</label><select class="input" onchange="updateProp('${block.id}','aspectRatio',this.value)">
+        ${['16 / 9','4 / 3','1 / 1','9 / 16'].map(v=>`<option value="${v}" ${(p.aspectRatio||'16 / 9')===v?'selected':''}>${v}</option>`).join('')}
+      </select></div>`;
+      html += field('Section Background', 'sectionBg', 'color');
+      html += `<div class="field"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;" class="label"><input type="checkbox" ${p.autoplay?'checked':''} onchange="updateProp('${block.id}','autoplay',this.checked)"> Autoplay</label></div>`;
+      html += `<div class="field"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;" class="label"><input type="checkbox" ${p.showControls !== false?'checked':''} onchange="updateProp('${block.id}','showControls',this.checked)"> Show player controls</label></div>`;
+      html += `<div class="field"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;" class="label"><input type="checkbox" ${p.privacyMode !== false?'checked':''} onchange="updateProp('${block.id}','privacyMode',this.checked)"> Privacy-enhanced mode</label></div>`;
+      html += `<div class="field"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;" class="label"><input type="checkbox" ${p.rounded?'checked':''} onchange="updateProp('${block.id}','rounded',this.checked)"> Rounded corners</label></div>`;
+      break;
+    case 'testimonialWall':
+      html += field('Section Title', 'title');
+      html += field('Intro Text', 'intro', 'textarea');
+      html += field('Background Color', 'bgColor', 'color');
+      html += field('Padding', 'padding');
+      html += field('Max Width', 'maxWidth');
+      html += `<div class="field"><label class="label">Columns</label><input class="input" type="range" min="1" max="4" step="1" value="${p.columns||'3'}" oninput="updateProp('${block.id}','columns',this.value);document.getElementById('tw_cols_${block.id}').textContent=this.value"></div><div class="text-muted text-sm" id="tw_cols_${block.id}" style="margin-top:-8px;margin-bottom:12px;">${p.columns||'3'}</div>`;
+      html += `<div class="field"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;" class="label"><input type="checkbox" ${p.showStars !== false?'checked':''} onchange="updateProp('${block.id}','showStars',this.checked)"> Show star ratings</label></div>`;
+      html += `<div class="field"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;" class="label"><input type="checkbox" ${p.highlightFirst?'checked':''} onchange="updateProp('${block.id}','highlightFirst',this.checked)"> Highlight first testimonial</label></div>`;
+      html += `<div class="field"><label class="label">Testimonials</label>`;
+      (p.testimonials||[]).forEach((t,i) => {
+        html += `<div style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:10px;margin-bottom:8px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+            <span style="font-size:11px;font-weight:600;color:var(--text2);">Testimonial ${i+1}</span>
+            <button class="btn btn-danger btn-sm" style="padding:2px 8px;font-size:11px;" onclick="removeItem('${block.id}','testimonials',${i})">× Remove</button>
+          </div>
+          <div class="field"><label class="label">Name</label><input class="input" type="text" value="${(t.name||'').replace(/"/g,'&quot;')}" oninput="updateItem('${block.id}','testimonials',${i},'name',this.value)"></div>
+          <div class="field"><label class="label">Role</label><input class="input" type="text" value="${(t.role||'').replace(/"/g,'&quot;')}" oninput="updateItem('${block.id}','testimonials',${i},'role',this.value)"></div>
+          <div class="field"><label class="label">Quote</label><textarea class="input" rows="3" oninput="updateItem('${block.id}','testimonials',${i},'quote',this.value)">${t.quote||''}</textarea></div>
+          <div class="field" style="margin-bottom:0;"><label class="label">Rating</label><input class="input" type="range" min="1" max="5" step="1" value="${t.rating||'5'}" oninput="updateItem('${block.id}','testimonials',${i},'rating',this.value);document.getElementById('tw_rating_${block.id}_${i}').textContent=this.value"></div>
+          <div class="text-muted text-sm" id="tw_rating_${block.id}_${i}" style="margin-top:6px;">${t.rating||'5'}</div>
+        </div>`;
+      });
+      html += `<button class="btn btn-secondary btn-sm" style="width:100%;" onclick="addItem('${block.id}','testimonials',{name:'Customer Name',role:'Customer Role',quote:'Add a real customer quote here.',rating:'5'})">+ Add Testimonial</button></div>`;
+      break;
     case 'html':
       html += `<div class="field"><label class="label">HTML Code</label><textarea class="input" rows="10" style="font-family:monospace;font-size:12px;" oninput="updateProp('${block.id}','code',this.value)">${(p.code||'').replace(/</g,'&lt;')}</textarea></div>`;
       break;
@@ -2806,6 +3155,7 @@ function buildPropsForm(block) {
 
   html += `<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">
     <button class="btn btn-secondary btn-sm" onclick="saveBlockAsTemplate()" title="Save this block's configuration as a reusable template">💾 Save Template</button>
+    <button class="btn btn-secondary btn-sm" onclick="saveSelectedBlockToLibrary()" title="Save this block into the global custom block library">⬆ Save To Library</button>
     <button class="btn btn-danger btn-sm" onclick="window.removeBlock('${block.id}')">🗑 Delete Block</button>
   </div>`;
 
@@ -3158,6 +3508,60 @@ function saveBlockAsTemplate() {
   renderTemplatesSection();
 }
 
+function saveSelectedBlockToLibrary() {
+  if (!_projectData || !STATE.selectedBlockId) {
+    toast('Select a block first.', 'error');
+    return;
+  }
+  const page = _projectData.pages[STATE.currentPageIndex];
+  const block = page.blocks.find(b => b.id === STATE.selectedBlockId);
+  if (!block) return;
+  const name = prompt('Custom block name:', `${block.type} block`);
+  if (!name || !name.trim()) return;
+  const description = prompt('Short description (optional):', '') || '';
+  const category = prompt('Category label (optional):', 'Custom') || 'Custom';
+  const library = getLibraryData();
+  library.blocks.push({
+    id: uid(),
+    name: name.trim(),
+    description: description.trim(),
+    category: category.trim() || 'Custom',
+    source: _projectData.name || 'Current Project',
+    block: JSON.parse(JSON.stringify(block))
+  });
+  saveLibraryData(library);
+  renderTemplatesSection();
+  renderLibraryModal();
+  toast('Custom block saved to library.', 'success');
+}
+
+function saveCurrentPageAsLibraryTemplate() {
+  if (!_projectData) {
+    toast('Open a website first.', 'error');
+    return;
+  }
+  const page = _projectData.pages[STATE.currentPageIndex];
+  if (!page) return;
+  const name = prompt('Website template name:', `${_projectData.name} template`);
+  if (!name || !name.trim()) return;
+  const description = prompt('Short description (optional):', '') || '';
+  const projectClone = JSON.parse(JSON.stringify(_projectData));
+  const pageClone = JSON.parse(JSON.stringify(page));
+  projectClone.pages = [Object.assign({}, pageClone, { name: 'Home', slug: 'index' })];
+  const library = getLibraryData();
+  library.pageTemplates.push({
+    id: uid(),
+    name: name.trim(),
+    description: description.trim(),
+    source: _projectData.name || 'Current Project',
+    projectData: projectClone
+  });
+  saveLibraryData(library);
+  renderNewProjectTemplateOptions();
+  renderLibraryModal();
+  toast('Website template saved to library.', 'success');
+}
+
 function deleteTemplate(templateId) {
   if (!confirm('Delete this template?')) return;
   _projectData.templates = (_projectData.templates||[]).filter(t => t.id !== templateId);
@@ -3179,23 +3583,180 @@ function addTemplateBlock(templateId) {
   toast(`Added "${template.name}"`, 'success');
 }
 
-function renderTemplatesSection() {
-  const section = document.getElementById('templates-section');
-  const templates = _projectData.templates || [];
-  if (!templates.length) {
-    section.innerHTML = '';
+function addLibraryBlock(libraryBlockId) {
+  if (!_projectData) {
+    toast('Open a website first.', 'error');
     return;
   }
-  let html = `<div class="blocks-section">
-    <div class="blocks-section-label">Saved Templates</div>`;
-  templates.forEach(t => {
-    html += `<div class="block-btn" style="padding:6px 8px;display:flex;align-items:center;justify-content:space-between;gap:4px;">
-      <button style="flex:1;text-align:left;background:none;border:none;color:var(--text);cursor:pointer;padding:0;font-size:13px;" onclick="addTemplateBlock('${t.id}')">${t.name}</button>
-      <button class="btn-icon" style="padding:3px;" onclick="deleteTemplate('${t.id}')" title="Delete template">×</button>
-    </div>`;
-  });
-  html += `</div>`;
+  const entry = getLibraryData().blocks.find(item => item.id === libraryBlockId);
+  if (!entry) {
+    toast('That custom block pack item is no longer installed.', 'error');
+    return;
+  }
+  const page = _projectData.pages[STATE.currentPageIndex];
+  const newBlock = JSON.parse(JSON.stringify(entry.block));
+  newBlock.id = uid();
+  page.blocks.push(newBlock);
+  STATE.selectedBlockId = newBlock.id;
+  pushUndoDebounced();
+  renderCanvas();
+  renderLayoutList();
+  renderProps();
+  toast(`Added "${entry.name}"`, 'success');
+}
+
+function renderTemplatesSection() {
+  const section = document.getElementById('templates-section');
+  const templates = _projectData?.templates || [];
+  const library = getLibraryData();
+  let html = '';
+
+  if (library.blocks.length) {
+    html += `<div class="blocks-section">
+      <div class="blocks-section-label">Custom Block Packs</div>`;
+    library.blocks.forEach(item => {
+      const meta = [item.category, item.priceLabel, item.source].filter(Boolean).join(' • ');
+      html += `<div class="block-btn" style="padding:6px 8px;display:flex;align-items:center;justify-content:space-between;gap:4px;">
+        <button style="flex:1;text-align:left;background:none;border:none;color:var(--text);cursor:pointer;padding:0;font-size:13px;" onclick="addLibraryBlock('${item.id}')">
+          ${item.name}
+          ${meta ? `<span class="block-meta">${meta}</span>` : ''}
+        </button>
+      </div>`;
+    });
+    html += `<div class="blocks-section-tools">
+      <button class="btn btn-secondary btn-sm" onclick="openLibraryModal()">Manage Library</button>
+    </div></div>`;
+  }
+
+  if (templates.length) {
+    html += `<div class="blocks-section">
+      <div class="blocks-section-label">Saved Templates</div>`;
+    templates.forEach(t => {
+      html += `<div class="block-btn" style="padding:6px 8px;display:flex;align-items:center;justify-content:space-between;gap:4px;">
+        <button style="flex:1;text-align:left;background:none;border:none;color:var(--text);cursor:pointer;padding:0;font-size:13px;" onclick="addTemplateBlock('${t.id}')">${t.name}</button>
+        <button class="btn-icon" style="padding:3px;" onclick="deleteTemplate('${t.id}')" title="Delete template">×</button>
+      </div>`;
+    });
+    html += `</div>`;
+  }
+
+  if (!html) {
+    html = `<div class="library-empty">Save your own blocks or import a downloadable pack to add premium custom blocks here.</div>`;
+  }
   section.innerHTML = html;
+}
+
+function openLibraryModal() {
+  renderLibraryModal();
+  openModal('modal-library');
+}
+
+function renderLibraryModal() {
+  const library = getLibraryData();
+  document.getElementById('library-template-count').textContent = library.pageTemplates.length;
+  document.getElementById('library-block-count').textContent = library.blocks.length;
+
+  const templateList = document.getElementById('library-template-list');
+  if (!library.pageTemplates.length) {
+    templateList.innerHTML = `<div class="library-empty">No custom website templates installed yet.</div>`;
+  } else {
+    templateList.innerHTML = library.pageTemplates.map(item => `
+      <div class="library-card">
+        <div class="library-card-title">${item.name}</div>
+        <div class="library-card-meta">${item.description || 'Reusable starter site.'}</div>
+        <div class="library-card-meta">${[item.source, item.author, item.priceLabel].filter(Boolean).join(' • ') || 'Imported template'}</div>
+        <div class="library-card-actions">
+          <button class="btn btn-secondary btn-sm" onclick="useLibraryTemplateForNewProject('${item.id}')">Use In New Website</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteLibraryItem('pageTemplates','${item.id}')">Delete</button>
+        </div>
+      </div>`).join('');
+  }
+
+  const blockList = document.getElementById('library-block-list');
+  if (!library.blocks.length) {
+    blockList.innerHTML = `<div class="library-empty">No custom block packs installed yet.</div>`;
+  } else {
+    blockList.innerHTML = library.blocks.map(item => `
+      <div class="library-card">
+        <div class="library-card-title">${item.name}</div>
+        <div class="library-card-meta">${item.description || 'Reusable custom block.'}</div>
+        <div class="library-card-meta">${[item.category, item.source, item.author, item.priceLabel].filter(Boolean).join(' • ') || 'Imported block'}</div>
+        <div class="library-card-actions">
+          <button class="btn btn-secondary btn-sm" onclick="addLibraryBlock('${item.id}')">Add To Current Page</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteLibraryItem('blocks','${item.id}')">Delete</button>
+        </div>
+      </div>`).join('');
+  }
+}
+
+function deleteLibraryItem(kind, id) {
+  const library = getLibraryData();
+  if (!library[kind]) return;
+  library[kind] = library[kind].filter(item => item.id !== id);
+  saveLibraryData(library);
+  renderTemplatesSection();
+  renderLibraryModal();
+  renderNewProjectTemplateOptions();
+  toast('Library item removed.', 'success');
+}
+
+function useLibraryTemplateForNewProject(id) {
+  closeModal('modal-library');
+  openNewProjectModal();
+  const select = document.getElementById('new-project-template');
+  const value = `library:${id}`;
+  if (select.querySelector(`option[value="${value}"]`)) select.value = value;
+}
+
+function exportLibraryBundle() {
+  const library = getLibraryData();
+  if (!library.pageTemplates.length && !library.blocks.length) {
+    toast('Add at least one template or custom block first.', 'error');
+    return;
+  }
+  const title = prompt('Bundle name:', 'custom-library-pack');
+  if (!title || !title.trim()) return;
+  const pack = {
+    format: 'functional-websites-library',
+    version: LIBRARY_PACK_VERSION,
+    title: title.trim(),
+    exportedAt: new Date().toISOString(),
+    pageTemplates: library.pageTemplates,
+    blocks: library.blocks
+  };
+  const blob = new Blob([JSON.stringify(pack, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${title.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-') || 'custom-library-pack'}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('Library bundle downloaded.', 'success');
+}
+
+async function importLibraryPack(input) {
+  const file = input.files && input.files[0];
+  input.value = '';
+  if (!file) return;
+  try {
+    const raw = await file.text();
+    const pack = JSON.parse(raw);
+    if (pack.format !== 'functional-websites-library') {
+      throw new Error('This file is not a Functional Websites library pack.');
+    }
+    const importedTemplateCount = Array.isArray(pack.pageTemplates) ? pack.pageTemplates.length : 0;
+    const importedBlockCount = Array.isArray(pack.blocks) ? pack.blocks.length : 0;
+    mergeLibraryData({
+      pageTemplates: pack.pageTemplates,
+      blocks: pack.blocks
+    });
+    renderTemplatesSection();
+    renderLibraryModal();
+    renderNewProjectTemplateOptions();
+    toast(`Imported ${importedTemplateCount} templates and ${importedBlockCount} blocks.`, 'success');
+  } catch (e) {
+    toast(`Library import failed: ${e.message}`, 'error');
+  }
 }
 
 // ============================================================
@@ -4204,16 +4765,7 @@ document.addEventListener('DOMContentLoaded', function init() {
   // Update back button when window resizes (mobile/desktop toggle)
   window.addEventListener('resize', debounce(updateBackButton, 150));
 
-  // Auto-resize canvas iframe
-  const iframe = document.getElementById('canvas-iframe');
-  if (iframe) {
-    const ro = new ResizeObserver(() => {
-      try {
-        iframe.style.height = (iframe.contentDocument?.body?.scrollHeight || 600) + 'px';
-      } catch(e) {}
-    });
-    ro.observe(iframe);
-  }
+  // Canvas resize is managed from iframe load/content observers.
 });
 </script>
 </body>
